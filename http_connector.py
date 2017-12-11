@@ -199,7 +199,8 @@ class HttpConnector(BaseConnector):
         ret_val, parsed_body = self._process_response(r, action_result)
 
         resp_data = {'method': method.upper(), 'location': url}
-        resp_data['response_body'] = parsed_body
+        resp_data['parsed_response_body'] = parsed_body
+        resp_data['response_body'] = r.text
         try:
             resp_data['response_headers'] = dict(r.headers)
         except Exception:

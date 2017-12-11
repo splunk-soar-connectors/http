@@ -1,18 +1,18 @@
 {
-    "appid"       : "290b7499-0374-4930-9cdc-5e9b05d65827",
-    "name"      : "HTTP",
-    "description" : "This App facilitates making HTTP requests as actions.",
+    "appid": "290b7499-0374-4930-9cdc-5e9b05d65827",
+    "name": "HTTP",
+    "description": "This App facilitates making HTTP requests as actions",
     "package_name": "phantom_http",
     "publisher": "Phantom",
     "type": "information",
-    "main_module"    : "http_connector.pyc",
-    "app_version": "2.0.10",
+    "main_module": "http_connector.pyc",
+    "app_version": "2.1.0",
     "utctime_updated": "2017-04-29T02:31:15.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "2.0.270",
-    "license": "Copyright (c) Phantom Cyber Corporation 2016",
+    "min_phantom_version": "3.0.251",
+    "license": "Copyright (c) Phantom Cyber Corporation 2014-2017",
     "logo": "phantom.png",
     "configuration": {
         "base_url": {
@@ -38,186 +38,302 @@
             "order": 3,
             "description": "Password (for HTTP basic auth)",
             "required": false
+        },
+        "timeout": {
+            "data_type": "numeric",
+            "order": 4,
+            "description": "Timeout for HTTP calls",
+            "required": false
         }
     },
     "actions": [
-      {
-        "action" : "get data",
-        "description": "Perform a REST GET call to the server",
-        "verbose": "",
-        "type": "generic",
-        "identifier": "http_get",
-        "read_only": true,
-        "parameters": {
-          "location": {
-            "description": "Location (e.g. path/to/endpoint?query=string)",
-            "data_type": "string",
-            "order": 0,
-            "required": true
-          },
-          "verify_certificate": {
-            "description": "Verify certificates (if using HTTPS)",
-            "data_type": "boolean",
-            "order": 1,
-            "required": true
-          },
-          "headers": {
-            "description": "Additional headers (JSON object with headers)",
-            "data_type": "string",
-            "order": 2,
-            "required": false
-          }
+        {
+            "action": "test connectivity",
+            "identifier": "test_connectivity",
+            "description": "Validate connection using the configured credentials",
+            "verbose": "This action will perform a GET on the configured <b>base_url</b>. The action will succeed if given a status code between 200 and 399 (inclusive). Therefore, if the given base URL requires no authentication, this action may pass even if the supplied credentials are incorrect. Alternately, if the given base URL does not point to a valid endpoint, this action could fail even if other actions may succeed with valid <b>location</b> parameters.",
+            "type": "test",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
+            "versions": "EQ(*)"
         },
-        "render": {
-          "type": "json",
-          "width": 10,
-          "height": 5,
-          "title": "GET DATA"
+        {
+            "action": "get data",
+            "description": "Perform a REST GET call to the server",
+            "verbose": "",
+            "type": "generic",
+            "identifier": "http_get",
+            "read_only": true,
+            "parameters": {
+                "location": {
+                    "description": "Location (e.g. path/to/endpoint?query=string)",
+                    "data_type": "string",
+                    "order": 0,
+                    "required": true
+                },
+                "verify_certificate": {
+                    "description": "Verify certificates (if using HTTPS)",
+                    "data_type": "boolean",
+                    "order": 1,
+                    "required": true
+                },
+                "headers": {
+                    "description": "Additional headers (JSON object with headers)",
+                    "data_type": "string",
+                    "order": 2,
+                    "required": false
+                }
+            },
+            "render": {
+                "type": "json",
+                "width": 10,
+                "height": 5,
+                "title": "GET DATA"
+            },
+            "output": [
+                {
+                    "data_path": "action_result.data.*.method",
+                    "data_type": "string",
+                    "example_values": [
+                        "GET"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location",
+                    "data_type": "string",
+                    "contains": [
+                        "url"
+                    ],
+                    "example_values": [
+                        "http://192.168.1.26/rest/cont"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.response_body",
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"failed\": true, \"message\": \"Requested item not found\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parsed_response_body",
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"failed\": true, \"message\": \"Requested item not found\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.response_headers",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Can't process response from server. Status Code: 404 Data from server: {\"failed\": true, \"message\": \"Requested item not found\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status_code",
+                    "data_type": "numeric",
+                    "example_values": [
+                        404
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.reason",
+                    "data_type": "string",
+                    "example_values": [
+                        "Not Found"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.headers",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.location",
+                    "data_type": "string",
+                    "example_values": [
+                        "/rest/cont"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.verify_certificate",
+                    "data_type": "boolean",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
         },
-        "output": [
-            {
-              "data_path": "action_result.data.*.method",
-              "data_type": "string"
+        {
+            "action": "post data",
+            "description": "Perform a REST POST call to the server",
+            "verbose": "",
+            "type": "generic",
+            "identifier": "http_post",
+            "read_only": false,
+            "parameters": {
+                "location": {
+                    "description": "Location (e.g. path/to/endpoint)",
+                    "data_type": "string",
+                    "order": 0,
+                    "required": true
+                },
+                "body": {
+                    "description": "POST body (query string, JSON, etc.)",
+                    "data_type": "string",
+                    "order": 1,
+                    "required": true
+                },
+                "verify_certificate": {
+                    "description": "Verify certificates (if using HTTPS)",
+                    "data_type": "boolean",
+                    "order": 2,
+                    "required": true
+                },
+                "headers": {
+                    "description": "Additional headers (JSON object with headers)",
+                    "data_type": "string",
+                    "order": 2,
+                    "required": false
+                }
             },
-            {
-              "data_path": "action_result.data.*.location",
-              "data_type": "string",
-              "contains": [
-                "url"
-              ]
+            "render": {
+                "type": "json",
+                "width": 10,
+                "height": 5,
+                "title": "POST DATA"
             },
-            {
-              "data_path": "action_result.data.*.response_body",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.data.*.response_headers",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.status",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.message",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.summary.status_code",
-              "data_type": "numeric"
-            },
-            {
-              "data_path": "action_result.summary.reason",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.parameter.headers",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.parameter.location",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.parameter.verify_certificate",
-              "data_type": "boolean"
-            }
-        ],
-        "versions":"EQ(*)"
-      },
-      {
-        "action" : "post data",
-        "description": "Perform a REST POST call to the server",
-        "verbose": "",
-        "type": "generic",
-        "identifier": "http_post",
-        "read_only": false,
-        "parameters": {
-          "location": {
-            "description": "Location (e.g. path/to/endpoint)",
-            "data_type": "string",
-            "order": 0,
-            "required": true
-          },
-          "body": {
-            "description": "POST body (query string, JSON, etc.)",
-            "data_type": "string",
-            "order": 1,
-            "required": true
-          },
-          "verify_certificate": {
-            "description": "Verify certificates (if using HTTPS)",
-            "data_type": "boolean",
-            "order": 2,
-            "required": true
-          },
-          "headers": {
-            "description": "Additional headers (JSON object with headers)",
-            "data_type": "string",
-            "order": 2,
-            "required": false
-          }
-        },
-        "render": {
-          "type": "json",
-          "width": 10,
-          "height": 5,
-          "title": "POST DATA"
-        },
-        "output": [
-            {
-              "data_path": "action_result.data.*.method",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.data.*.location",
-              "data_type": "string",
-              "contains": [
-                "url"
-              ]
-            },
-            {
-              "data_path": "action_result.data.*.response_body",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.data.*.response_headers",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.status",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.message",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.summary.status_code",
-              "data_type": "numeric"
-            },
-            {
-              "data_path": "action_result.summary.reason",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.parameter.body",
-              "data_type": "numeric"
-            },
-            {
-              "data_path": "action_result.parameter.headers",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.parameter.location",
-              "data_type": "string"
-            },
-            {
-              "data_path": "action_result.parameter.verify_certificate",
-              "data_type": "boolean"
-            }
-        ],
-        "versions":"EQ(*)"
-      }
+            "output": [
+                {
+                    "data_path": "action_result.data.*.method",
+                    "data_type": "string",
+                    "example_values": [
+                        "POST"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.location",
+                    "data_type": "string",
+                    "contains": [
+                        "url"
+                    ],
+                    "example_values": [
+                        "http://192.168.1.26/rest/assets"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.response_body",
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"failed\": true, \"message\": \"Requested item not found\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.parsed_response_body",
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"failed\": true, \"message\": \"Requested item not found\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.response_headers",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": [
+                        "Can't process response from server. Status Code: 404 Data from server: {\"failed\": true, \"message\": \"Requested item not found\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.status_code",
+                    "data_type": "numeric",
+                    "example_values": [
+                        404
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.reason",
+                    "data_type": "string",
+                    "example_values": [
+                        "Not Found"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.body",
+                    "data_type": "numeric",
+                    "example_values": [
+                        "{\"name\": \"Bad IP\"}"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.headers",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.parameter.location",
+                    "data_type": "string",
+                    "example_values": [
+                        "/rest/assets"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.verify_certificate",
+                    "data_type": "boolean",
+                    "example_values": [
+                        "false"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
+        }
     ]
 }

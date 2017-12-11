@@ -200,7 +200,7 @@ class HttpConnector(BaseConnector):
 
         resp_data = {'method': method.upper(), 'location': url}
         resp_data['parsed_response_body'] = parsed_body
-        resp_data['response_body'] = r.text
+        resp_data['response_body'] = r.text if 'json' not in r.headers.get('Content-Type', '') else parsed_body
         try:
             resp_data['response_headers'] = dict(r.headers)
         except Exception:

@@ -51,7 +51,9 @@ class HttpConnector(BaseConnector):
         self._token = config.get('auth_token')
         self._username = config.get('username')
         self._password = config.get('password', '')
-        self._timeout = int(config.get('timeout'))
+
+        if 'timeout' in config:
+            self._timeout = int(config['timeout'])
 
         # Verify base URL. Make sure it's not 127.0.0.1
         try:

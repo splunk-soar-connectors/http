@@ -53,7 +53,12 @@ class HttpConnector(BaseConnector):
         self._password = config.get('password', '')
 
         if 'timeout' in config:
-            self._timeout = int(config['timeout'])
+            try:
+                self._timeout = int(config['timeout'])
+            except ValueError as e:
+                return self.set_status(phantom.APP_ERROR, "Given timeout value is not a valid integer")
+            except Exception as e:
+                return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(e))
 
         # Verify base URL. Make sure it's not 127.0.0.1
         try:

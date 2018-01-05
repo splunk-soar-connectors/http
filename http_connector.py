@@ -226,6 +226,21 @@ class HttpConnector(BaseConnector):
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
+    def _get_headers(self, action_result, headers):
+        # Not to be confused with the action "get headers"
+        if headers is None:
+            return RetVal(phantom.APP_SUCCESS)
+
+        try:
+            headers = json.loads(headers)
+        except Exception as e:
+            return RetVal(action_result.set_status(
+                phantom.APP_ERROR,
+                u'Failed to parse headers as JSON object. error: {}, headers: {}'.format(str(e), unicode(headers))
+            ))
+
+        return RetVal(phantom.APP_SUCCESS, headers)
+
     def _handle_test_connectivity(self, param):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
@@ -242,8 +257,8 @@ class HttpConnector(BaseConnector):
 
         return ret_val
 
-    def _handle_get(self, param):
-
+    def _verb(self, param, method):
+        # These three are all the same thing except for the 'method'
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
 
@@ -251,32 +266,37 @@ class HttpConnector(BaseConnector):
         if not location.startswith('/'):
             location = '/' + location
 
-        headers = param.get('headers')
-        if headers:
-            try:
-                headers = json.loads(headers)
-            except Exception as e:
-                return action_result.set_status(phantom.APP_ERROR, u'Failed to parse headers as JSON object. error: {}, headers: {}'.format(str(e), unicode(headers)))
+        ret_val, headers = self._get_headers(action_result, param.get('headers'))
 
-        return self._make_http_call(action_result, endpoint=location, headers=headers, verify=param['verify_certificate'])
+        return self._make_http_call(
+            action_result,
+            endpoint=location,
+            method=method,
+            headers=headers,
+            verify=param['verify_certificate'],
+            data=param.get('body')
+        )
+
+    def _handle_get(self, param):
+        return self._verb(param, 'get')
 
     def _handle_post(self, param):
+        return self._verb(param, 'post')
 
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
-        action_result = self.add_action_result(ActionResult(dict(param)))
+    def _handle_patch(self, param):
+        return self._verb(param, 'patch')
 
-        location = param['location']
-        if not location.startswith('/'):
-            location = '/' + location
+    def _handle_put(self, param):
+        return self._verb(param, 'put')
 
-        headers = param.get('headers')
-        if headers:
-            try:
-                headers = json.loads(headers)
-            except Exception as e:
-                return action_result.set_status(phantom.APP_ERROR, u'Failed to parse headers as JSON object. error: {}, headers: {}'.format(str(e), unicode(headers)))
+    def _handle_delete(self, param):
+        return self._verb(param, 'delete')
 
-        return self._make_http_call(action_result, endpoint=location, method='post', headers=headers, verify=param['verify_certificate'], data=param['body'])
+    def _handle_head(self, param):
+        return self._verb(param, 'head')
+
+    def _handle_options(self, param):
+        return self._verb(param, 'options')
 
     def handle_action(self, param):
 
@@ -294,6 +314,21 @@ class HttpConnector(BaseConnector):
 
         elif action_id == 'http_post':
             ret_val = self._handle_post(param)
+
+        elif action_id == 'http_put':
+            ret_val = self._handle_put(param)
+
+        elif action_id == 'http_patch':
+            ret_val = self._handle_patch(param)
+
+        elif action_id == 'http_delete':
+            ret_val = self._handle_delete(param)
+
+        elif action_id == 'http_head':
+            ret_val = self._handle_head(param)
+
+        elif action_id == 'http_options':
+            ret_val = self._handle_options(param)
 
         return ret_val
 

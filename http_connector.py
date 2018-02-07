@@ -159,7 +159,7 @@ class HttpConnector(BaseConnector):
         if 'xml' in r.headers.get('Content-Type', ''):
             return self._process_xml_response(r, action_result)
 
-        if 'json' in r.headers.get('Content-Type', ''):
+        if 'json' in r.headers.get('Content-Type', '') or 'javascript' in r.headers.get('Content-Type', ''):
             return self._process_json_response(r, action_result)
 
         if 'html' in r.headers.get('Content-Type', ''):
@@ -207,7 +207,7 @@ class HttpConnector(BaseConnector):
 
         resp_data = {'method': method.upper(), 'location': url}
         resp_data['parsed_response_body'] = parsed_body
-        resp_data['response_body'] = r.text if 'json' not in r.headers.get('Content-Type', '') else parsed_body
+        resp_data['response_body'] = r.text if 'json' not in r.headers.get('Content-Type', '') and 'javascript' not in r.headers.get('Content-Type', '') else parsed_body
         try:
             resp_data['response_headers'] = dict(r.headers)
         except Exception:

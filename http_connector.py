@@ -60,22 +60,26 @@ class HttpConnector(BaseConnector):
             except Exception as e:
                 return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(e))
 
-        # Verify base URL. Make sure it's not 127.0.0.1
+        parsed = urlparse.urlparse(self._base_url)
+        if not parsed.scheme or \
+           not parsed.hostname:
+            return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
+
+        # Make sure base_url isn't 127.0.0.1
+        addr = parsed.hostname
         try:
-
-            addr = urlparse.urlparse(self._base_url).hostname
-
             try:
                 unpacked = socket.gethostbyname(addr)
             except:
                 packed = socket.inet_aton(addr)
                 unpacked = socket.inet_ntoa(packed)
+        except:
+            # gethostbyname can fail even when the addr is a hostname
+            # If that happens, I think we can assume that it isn't localhost
+            unpacked = ""
 
-            if unpacked.startswith('127.'):
-                return self.set_status(phantom.APP_ERROR, 'Accessing 127.0.0.1 is not allowed')
-
-        except TypeError:
-            return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
+        if unpacked.startswith('127.'):
+            return self.set_status(phantom.APP_ERROR, 'Accessing 127.0.0.1 is not allowed')
 
         return phantom.APP_SUCCESS
 

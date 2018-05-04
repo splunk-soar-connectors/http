@@ -68,15 +68,15 @@ class HttpConnector(BaseConnector):
         # Make sure base_url isn't 127.0.0.1
         addr = parsed.hostname
         try:
-            try:
-                unpacked = socket.gethostbyname(addr)
-            except:
-                packed = socket.inet_aton(addr)
-                unpacked = socket.inet_ntoa(packed)
+            unpacked = socket.gethostbyname(addr)
         except:
-            # gethostbyname can fail even when the addr is a hostname
-            # If that happens, I think we can assume that it isn't localhost
-            unpacked = ""
+            try:
+                packed = socket.inet_aton(addr)
+                unpacked = socket.inet_aton(packed)
+            except:
+                # gethostbyname can fail even when the addr is a hostname
+                # If that happens, I think we can assume that it isn't localhost
+                unpacked = ""
 
         if unpacked.startswith('127.'):
             return self.set_status(phantom.APP_ERROR, 'Accessing 127.0.0.1 is not allowed')

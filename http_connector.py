@@ -184,6 +184,8 @@ class HttpConnector(BaseConnector):
 
         auth = None
         if self._token:
+            if not headers:
+                headers = {}
             if 'ph-auth-token' not in headers:
                 headers['ph-auth-token'] = self._token
         elif self._username:

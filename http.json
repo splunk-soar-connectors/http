@@ -6,13 +6,13 @@
     "publisher": "Phantom",
     "type": "information",
     "main_module": "http_connector.pyc",
-    "app_version": "2.1.10",
-    "utctime_updated": "2018-02-23T02:17:18.000000Z",
+    "app_version": "2.1.13",
+    "utctime_updated": "2018-07-25T23:41:31.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "3.0.251",
-    "license": "Copyright (c) Phantom Cyber Corporation, 2014-2018",
+    "min_phantom_version": "3.5.180",
+    "license": "Copyright (c) 2014-2018 Splunk Inc.",
     "logo": "logo_phantom.svg",
     "logo_dark": "logo_phantom_dark.svg",
     "configuration": {
@@ -23,7 +23,7 @@
             "required": true
         },
         "auth_token": {
-            "data_type": "string",
+            "data_type": "password",
             "order": 1,
             "description": "Phantom Auth token (for use with Phantom servers)",
             "required": false

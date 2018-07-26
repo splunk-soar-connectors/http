@@ -1,14 +1,12 @@
 # --
 # File: https_connector.py
 #
-# Copyright (c) Phantom Cyber Corporation, 2014-2018
+# Copyright (c) 2014-2018 Splunk Inc.
 #
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
+# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
+#
+
 #
 # --
 
@@ -60,22 +58,26 @@ class HttpConnector(BaseConnector):
             except Exception as e:
                 return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(e))
 
-        # Verify base URL. Make sure it's not 127.0.0.1
-        try:
-
-            addr = urlparse.urlparse(self._base_url).hostname
-
-            try:
-                unpacked = socket.gethostbyname(addr)
-            except:
-                packed = socket.inet_aton(addr)
-                unpacked = socket.inet_ntoa(packed)
-
-            if unpacked.startswith('127.'):
-                return self.set_status(phantom.APP_ERROR, 'Accessing 127.0.0.1 is not allowed')
-
-        except TypeError:
+        parsed = urlparse.urlparse(self._base_url)
+        if not parsed.scheme or \
+           not parsed.hostname:
             return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
+
+        # Make sure base_url isn't 127.0.0.1
+        addr = parsed.hostname
+        try:
+            unpacked = socket.gethostbyname(addr)
+        except:
+            try:
+                packed = socket.inet_aton(addr)
+                unpacked = socket.inet_aton(packed)
+            except:
+                # gethostbyname can fail even when the addr is a hostname
+                # If that happens, I think we can assume that it isn't localhost
+                unpacked = ""
+
+        if unpacked.startswith('127.'):
+            return self.set_status(phantom.APP_ERROR, 'Accessing 127.0.0.1 is not allowed')
 
         return phantom.APP_SUCCESS
 
@@ -180,6 +182,8 @@ class HttpConnector(BaseConnector):
 
         auth = None
         if self._token:
+            if not headers:
+                headers = {}
             if 'ph-auth-token' not in headers:
                 headers['ph-auth-token'] = self._token
         elif self._username:

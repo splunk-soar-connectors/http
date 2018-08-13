@@ -38,6 +38,7 @@ class HttpConnector(BaseConnector):
 
         self._state = None
         self._base_url = None
+        self._base_url_path = None
         self._timeout = None
 
     def initialize(self):
@@ -49,6 +50,15 @@ class HttpConnector(BaseConnector):
         self._token = config.get('auth_token')
         self._username = config.get('username')
         self._password = config.get('password', '')
+
+        if 'base_url_path' in config:
+            try:
+                if config['base_url_path'].startswith('/'):
+                    self._base_url_path = config['base_url_path']
+                else:
+                    return self.set_status(phantom.APP_ERROR, "Given endpoint does not start with '/'")
+            except Exception as e:
+                return self.set_status(phantom.APP_ERROR, "Given endpoint value is invalid: {0}".format(e))
 
         if 'timeout' in config:
             try:
@@ -249,15 +259,19 @@ class HttpConnector(BaseConnector):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
+        base_url_path = self._base_url_path
 
-        self.save_progress("Querying base url, {0}, to test credentials".format(self._base_url))
-
-        ret_val = self._make_http_call(action_result)
+        if base_url_path:
+            self.save_progress("Querying base url, {0}{1}, to test credentials".format(self._base_url, self._base_url_path))
+            ret_val = self._make_http_call(action_result, base_url_path)
+        else:
+            self.save_progress("Querying base url, {0}, to test credentials".format(self._base_url))
+            ret_val = self._make_http_call(action_result)
 
         if phantom.is_fail(ret_val):
-            self.save_progress("Test connectivity failed")
+            self.save_progress("Test Connectivity Failed")
         else:
-            self.save_progress("Test connectivity passed")
+            self.save_progress("Test Connectivity Passed")
 
         return ret_val
 

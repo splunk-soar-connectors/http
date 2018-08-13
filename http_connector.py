@@ -38,7 +38,7 @@ class HttpConnector(BaseConnector):
 
         self._state = None
         self._base_url = None
-        self._base_url_path = None
+        self._test_path = None
         self._timeout = None
 
     def initialize(self):
@@ -51,12 +51,12 @@ class HttpConnector(BaseConnector):
         self._username = config.get('username')
         self._password = config.get('password', '')
 
-        if 'base_url_path' in config:
+        if 'test_path' in config:
             try:
-                if config['base_url_path'].startswith('/'):
-                    self._base_url_path = config['base_url_path']
+                if not config['test_path'].startswith('/'):
+                    self._test_path = '/' + config['test_path']
                 else:
-                    return self.set_status(phantom.APP_ERROR, "Given endpoint does not start with '/'")
+                    self._test_path = config['test_path']
             except Exception as e:
                 return self.set_status(phantom.APP_ERROR, "Given endpoint value is invalid: {0}".format(e))
 
@@ -259,11 +259,11 @@ class HttpConnector(BaseConnector):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
-        base_url_path = self._base_url_path
+        test_path = self._test_path
 
-        if base_url_path:
-            self.save_progress("Querying base url, {0}{1}, to test credentials".format(self._base_url, self._base_url_path))
-            ret_val = self._make_http_call(action_result, base_url_path)
+        if test_path:
+            self.save_progress("Querying base url, {0}{1}, to test credentials".format(self._base_url, self._test_path))
+            ret_val = self._make_http_call(action_result, test_path)
         else:
             self.save_progress("Querying base url, {0}, to test credentials".format(self._base_url))
             ret_val = self._make_http_call(action_result)

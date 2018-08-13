@@ -22,7 +22,7 @@
             "description": "Base URL for making queries. (e.g. https://myservice/)",
             "required": true
         },
-        "base_url_path": {
+        "test_path": {
             "data_type": "string",
             "order": 1,
             "description": "Base URL endpoint for test connectivity. (e.g. /some/specific/endpoint)",

@@ -22,27 +22,33 @@
             "description": "Base URL for making queries. (e.g. https://myservice/)",
             "required": true
         },
+        "test_path": {
+            "data_type": "string",
+            "order": 1,
+            "description": "Base URL endpoint for test connectivity. (e.g. /some/specific/endpoint)",
+            "required": false
+        },
         "auth_token": {
             "data_type": "password",
-            "order": 1,
+            "order": 2,
             "description": "Phantom Auth token (for use with Phantom servers)",
             "required": false
         },
         "username": {
             "data_type": "string",
-            "order": 2,
+            "order": 3,
             "description": "Username (for HTTP basic auth)",
             "required": false
         },
         "password": {
             "data_type": "password",
-            "order": 3,
+            "order": 4,
             "description": "Password (for HTTP basic auth)",
             "required": false
         },
         "timeout": {
             "data_type": "numeric",
-            "order": 4,
+            "order": 5,
             "description": "Timeout for HTTP calls",
             "required": false
         }

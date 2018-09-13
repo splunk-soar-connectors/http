@@ -6,12 +6,12 @@
     "publisher": "Phantom",
     "type": "information",
     "main_module": "http_connector.pyc",
-    "app_version": "2.1.13",
-    "utctime_updated": "2018-07-25T23:41:31.000000Z",
+    "app_version": "2.1.15",
+    "utctime_updated": "2018-09-12T23:37:50.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "3.5.180",
+    "min_phantom_version": "3.5.210",
     "license": "Copyright (c) 2014-2018 Splunk Inc.",
     "logo": "logo_phantom.svg",
     "logo_dark": "logo_phantom_dark.svg",
@@ -22,27 +22,33 @@
             "description": "Base URL for making queries. (e.g. https://myservice/)",
             "required": true
         },
+        "test_path": {
+            "data_type": "string",
+            "order": 1,
+            "description": "Base URL endpoint for test connectivity. (e.g. /some/specific/endpoint)",
+            "required": false
+        },
         "auth_token": {
             "data_type": "password",
-            "order": 1,
+            "order": 2,
             "description": "Phantom Auth token (for use with Phantom servers)",
             "required": false
         },
         "username": {
             "data_type": "string",
-            "order": 2,
+            "order": 3,
             "description": "Username (for HTTP basic auth)",
             "required": false
         },
         "password": {
             "data_type": "password",
-            "order": 3,
+            "order": 4,
             "description": "Password (for HTTP basic auth)",
             "required": false
         },
         "timeout": {
             "data_type": "numeric",
-            "order": 4,
+            "order": 5,
             "description": "Timeout for HTTP calls",
             "required": false
         }

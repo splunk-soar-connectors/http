@@ -38,6 +38,7 @@ class HttpConnector(BaseConnector):
 
         self._state = None
         self._base_url = None
+        self._test_path = None
         self._timeout = None
 
     def initialize(self):
@@ -49,6 +50,15 @@ class HttpConnector(BaseConnector):
         self._token = config.get('auth_token')
         self._username = config.get('username')
         self._password = config.get('password', '')
+
+        if 'test_path' in config:
+            try:
+                if not config['test_path'].startswith('/'):
+                    self._test_path = '/' + config['test_path']
+                else:
+                    self._test_path = config['test_path']
+            except Exception as e:
+                return self.set_status(phantom.APP_ERROR, "Given endpoint value is invalid: {0}".format(e))
 
         if 'timeout' in config:
             try:
@@ -249,15 +259,19 @@ class HttpConnector(BaseConnector):
 
         self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
         action_result = self.add_action_result(ActionResult(dict(param)))
+        test_path = self._test_path
 
-        self.save_progress("Querying base url, {0}, to test credentials".format(self._base_url))
-
-        ret_val = self._make_http_call(action_result)
+        if test_path:
+            self.save_progress("Querying base url, {0}{1}, to test credentials".format(self._base_url, self._test_path))
+            ret_val = self._make_http_call(action_result, test_path)
+        else:
+            self.save_progress("Querying base url, {0}, to test credentials".format(self._base_url))
+            ret_val = self._make_http_call(action_result)
 
         if phantom.is_fail(ret_val):
-            self.save_progress("Test connectivity failed")
+            self.save_progress("Test Connectivity Failed")
         else:
-            self.save_progress("Test connectivity passed")
+            self.save_progress("Test Connectivity Passed")
 
         return ret_val
 

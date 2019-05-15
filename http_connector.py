@@ -1,9 +1,7 @@
-# --
-# File: https_connector.py
+# File: http_connector.py
+# Copyright (c) 2016-2019 Splunk Inc.
 #
-# Copyright (c) 2014-2018 Splunk Inc.
-#
-# SPLUNK CONFIDENTIAL – Use or disclosure of this material in whole or in part
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
 #
 
@@ -47,6 +45,7 @@ class HttpConnector(BaseConnector):
 
         config = self.get_config()
         self._base_url = config['base_url'].strip('/')
+        self._token_name = config.get('auth_token_name', 'ph-auth-token')
         self._token = config.get('auth_token')
         self._username = config.get('username')
         self._password = config.get('password', '')
@@ -194,8 +193,8 @@ class HttpConnector(BaseConnector):
         if self._token:
             if not headers:
                 headers = {}
-            if 'ph-auth-token' not in headers:
-                headers['ph-auth-token'] = self._token
+            if self._token_name not in headers:
+                headers[self._token_name] = self._token
         elif self._username:
             auth = (self._username, self._password)
 

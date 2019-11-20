@@ -11,7 +11,7 @@
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "4.0.1068",
+    "min_phantom_version": "4.5.15922",
     "license": "Copyright (c) 2016-2019 Splunk Inc.",
     "logo": "logo_phantom.svg",
     "logo_dark": "logo_phantom_dark.svg",
@@ -31,14 +31,14 @@
         "auth_token_name": {
             "data_type": "string",
             "order": 2,
-            "description": "Phantom Auth token name",
+            "description": "Authentication Token Header Field",
             "default": "ph-auth-token",
             "required": false
         },
         "auth_token": {
             "data_type": "password",
             "order": 3,
-            "description": "Phantom Auth token (for use with Phantom servers)",
+            "description": "Authentication Token",
             "required": false
         },
         "username": {

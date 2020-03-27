@@ -252,6 +252,9 @@ class HttpConnector(BaseConnector):
 
         headers = UnicodeDammit(headers).unicode_markup.encode('utf-8')
 
+        if sys.version[0] == 3:
+            headers = headers.decode('UTF-8')
+
         try:
             headers = json.loads(headers)
         except Exception as e:

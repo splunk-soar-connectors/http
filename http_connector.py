@@ -20,9 +20,9 @@ import xmltodict
 from bs4 import BeautifulSoup, UnicodeDammit
 import sys
 try:
-    import urlparse
+    from urlparse import urlparse
 except:
-    import urllib.parse
+    from urllib.parse import urlparse
 import socket
 
 
@@ -70,10 +70,8 @@ class HttpConnector(BaseConnector):
             except Exception as e:
                 return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(e))
 
-        try:
-            parsed = urlparse.urlparse(self._base_url)
-        except:
-            parsed = urllib.parse.urlparse(self._base_url)
+        parsed = urlparse(self._base_url)
+        
         if not parsed.scheme or \
            not parsed.hostname:
             return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))

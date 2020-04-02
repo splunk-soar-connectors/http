@@ -220,8 +220,11 @@ class HttpConnector(BaseConnector):
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e)))
 
+        # Return success for get headers action as it returns empty response body
+        if self.get_action_identifier() == 'http_head' and r.status_code == 200:
+            return action_result.set_status(phantom.APP_SUCCESS)
+        
         ret_val, parsed_body = self._process_response(r, action_result)
-
         resp_data = {'method': method.upper(), 'location': url}
         resp_data['parsed_response_body'] = parsed_body
         resp_data['response_body'] = r.text if 'json' not in r.headers.get('Content-Type', '') and 'javascript' not in r.headers.get('Content-Type', '') else parsed_body
@@ -250,8 +253,8 @@ class HttpConnector(BaseConnector):
 
         headers = UnicodeDammit(headers).unicode_markup.encode('utf-8')
 
-        if sys.version[0] == 3:
-            headers = headers.decode('UTF-8')
+        if hasattr(headers, 'decode'):
+            headers = headers.decode('utf-8')
 
         try:
             headers = json.loads(headers)
@@ -289,10 +292,21 @@ class HttpConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         location = param['location']
+        body = param.get('body')
+
         if not location.startswith('/'):
+
             location = '/' + location
 
+        location = UnicodeDammit(location).unicode_markup.encode('utf-8')
+        if hasattr(location, 'decode'):
+            location = location.decode('utf-8')
+
+        if body:
+            body = UnicodeDammit(body).unicode_markup.encode('utf-8')
+
         ret_val, headers = self._get_headers(action_result, param.get('headers'))
+
 
         return self._make_http_call(
             action_result,
@@ -300,7 +314,7 @@ class HttpConnector(BaseConnector):
             method=method,
             headers=headers,
             verify=param['verify_certificate'],
-            data=param.get('body')
+            data=body
         )
 
     def _handle_get(self, param):

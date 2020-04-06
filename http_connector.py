@@ -17,9 +17,12 @@ from phantom.action_result import ActionResult
 import json
 import requests
 import xmltodict
-from bs4 import BeautifulSoup
-
-import urlparse
+from bs4 import BeautifulSoup, UnicodeDammit
+import sys
+try:
+    from urlparse import urlparse
+except:
+    from urllib.parse import urlparse
 import socket
 
 
@@ -67,7 +70,8 @@ class HttpConnector(BaseConnector):
             except Exception as e:
                 return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(e))
 
-        parsed = urlparse.urlparse(self._base_url)
+        parsed = urlparse(self._base_url)
+        
         if not parsed.scheme or \
            not parsed.hostname:
             return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
@@ -216,8 +220,11 @@ class HttpConnector(BaseConnector):
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e)))
 
+        # Return success for get headers action as it returns empty response body
+        if self.get_action_identifier() == 'http_head' and r.status_code == 200:
+            return action_result.set_status(phantom.APP_SUCCESS)
+        
         ret_val, parsed_body = self._process_response(r, action_result)
-
         resp_data = {'method': method.upper(), 'location': url}
         resp_data['parsed_response_body'] = parsed_body
         resp_data['response_body'] = r.text if 'json' not in r.headers.get('Content-Type', '') and 'javascript' not in r.headers.get('Content-Type', '') else parsed_body
@@ -244,12 +251,17 @@ class HttpConnector(BaseConnector):
         if headers is None:
             return RetVal(phantom.APP_SUCCESS)
 
+        headers = UnicodeDammit(headers).unicode_markup.encode('utf-8')
+
+        if hasattr(headers, 'decode'):
+            headers = headers.decode('utf-8')
+
         try:
             headers = json.loads(headers)
         except Exception as e:
             return RetVal(action_result.set_status(
                 phantom.APP_ERROR,
-                u'Failed to parse headers as JSON object. error: {}, headers: {}'.format(str(e), unicode(headers))
+                u'Failed to parse headers as JSON object. error: {}, headers: {}'.format(str(e), headers)
             ))
 
         return RetVal(phantom.APP_SUCCESS, headers)
@@ -280,10 +292,21 @@ class HttpConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         location = param['location']
+        body = param.get('body')
+
         if not location.startswith('/'):
+
             location = '/' + location
 
+        location = UnicodeDammit(location).unicode_markup.encode('utf-8')
+        if hasattr(location, 'decode'):
+            location = location.decode('utf-8')
+
+        if body:
+            body = UnicodeDammit(body).unicode_markup.encode('utf-8')
+
         ret_val, headers = self._get_headers(action_result, param.get('headers'))
+
 
         return self._make_http_call(
             action_result,
@@ -291,7 +314,7 @@ class HttpConnector(BaseConnector):
             method=method,
             headers=headers,
             verify=param['verify_certificate'],
-            data=param.get('body')
+            data=body
         )
 
     def _handle_get(self, param):
@@ -353,11 +376,39 @@ class HttpConnector(BaseConnector):
 if __name__ == '__main__':
 
     import sys
-    # import pudb
-    # pudb.set_trace()
+    import pudb
+    import argparse
+    import requests
+    pudb.set_trace()
+
+    argparser = argparse.ArgumentParser()
+
+    argparser.add_argument('input_test_json', help='Input Test JSON file')
+    argparser.add_argument('-u', '--username', help='username', required=False)
+    argparser.add_argument('-p', '--password', help='password', required=False)
+
+    args = argparser.parse_args()
+    session_id = None
+
+    if (args.username and args.password):
+        login_url = BaseConnector._get_phantom_base_url() + "login"
+        try:
+            print("Accessing the Login page")
+            r = requests.get(login_url, verify=False)
+            csrftoken = r.cookies['csrftoken']
+            data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
+            headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
+
+            print("Logging into Platform to get the session id")
+            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            session_id = r2.cookies['sessionid']
+
+        except Exception as e:
+            print("Unable to get session id from the platform. Error: {0}".format(str(e)))
+            exit(1)
 
     if (len(sys.argv) < 2):
-        print "No test json specified as input"
+        print("No test json specified as input")
         exit(0)
 
     with open(sys.argv[1]) as f:
@@ -367,7 +418,11 @@ if __name__ == '__main__':
 
         connector = HttpConnector()
         connector.print_progress_message = True
+
+        if (session_id is not None):
+            in_json['user_session_token'] = session_id
+
         ret_val = connector._handle_action(json.dumps(in_json), None)
-        print json.dumps(json.loads(ret_val), indent=4)
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     exit(0)

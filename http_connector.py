@@ -18,7 +18,6 @@ import json
 import requests
 import xmltodict
 from bs4 import BeautifulSoup, UnicodeDammit
-import sys
 try:
     from urlparse import urlparse
 except:
@@ -65,13 +64,13 @@ class HttpConnector(BaseConnector):
         if 'timeout' in config:
             try:
                 self._timeout = int(config['timeout'])
-            except ValueError as e:
+            except ValueError:
                 return self.set_status(phantom.APP_ERROR, "Given timeout value is not a valid integer")
             except Exception as e:
                 return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(e))
 
         parsed = urlparse(self._base_url)
-        
+
         if not parsed.scheme or \
            not parsed.hostname:
             return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
@@ -139,13 +138,21 @@ class HttpConnector(BaseConnector):
         if 200 <= response.status_code < 400:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
-        message = "Error from server. Status Code: {0} Data from server: {1}".format(response.status_code,
-                                                                                     response.text.replace('{', '{{').
-                                                                                     replace('}', '}}'))
+        message_template = 'Error from server. Status Code: {0} Data from server: {1}'
+        message = message_template.format(
+            response.status_code, response.text.replace('{', '{{').  replace('}', '}}'))
 
-        if resp_json.get('error'):
-            message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                response.status_code, resp_json['error']['message'])
+        error_field_name = 'error'
+        message_field_name = 'message'
+        if error_field_name in resp_json:
+            error_field = resp_json[error_field_name]
+
+            if isinstance(error_field, dict) and message_field_name in error_field:
+                error_message = error_field[message_field_name]
+            else:
+                error_message = error_field
+
+            message = message_template.format(response.status_code, error_message)
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), resp_json)
 
@@ -223,7 +230,7 @@ class HttpConnector(BaseConnector):
         # Return success for get headers action as it returns empty response body
         if self.get_action_identifier() == 'http_head' and r.status_code == 200:
             return action_result.set_status(phantom.APP_SUCCESS)
-        
+
         ret_val, parsed_body = self._process_response(r, action_result)
         resp_data = {'method': method.upper(), 'location': url}
         resp_data['parsed_response_body'] = parsed_body
@@ -307,7 +314,6 @@ class HttpConnector(BaseConnector):
 
         ret_val, headers = self._get_headers(action_result, param.get('headers'))
 
-
         return self._make_http_call(
             action_result,
             endpoint=location,
@@ -378,7 +384,6 @@ if __name__ == '__main__':
     import sys
     import pudb
     import argparse
-    import requests
     pudb.set_trace()
 
     argparser = argparse.ArgumentParser()

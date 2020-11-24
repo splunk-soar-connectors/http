@@ -18,11 +18,15 @@ import json
 import requests
 import xmltodict
 from bs4 import BeautifulSoup, UnicodeDammit
+
 try:
+    from urllib.parse import urlparse, unquote_plus
+except ImportError:
+    from urllib import unquote_plus
     from urlparse import urlparse
-except:
-    from urllib.parse import urlparse
+
 import socket
+import sys
 
 
 class RetVal(tuple):
@@ -40,16 +44,67 @@ class HttpConnector(BaseConnector):
         self._base_url = None
         self._test_path = None
         self._timeout = None
+        self._python_version = None
+
+    def _handle_py_ver_compat_for_input_str(self, input_str):
+        """
+        This method returns the encoded|original string based on the Python version.
+        :param input_str: Input string to be processed
+        :return: input_str (Processed input string based on following logic 'input_str - Python 3; encoded input_str - Python 2')
+        """
+        try:
+            if input_str and self._python_version < 3:
+                input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
+        except:
+            self.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
+
+        return input_str
+
+    def _get_error_message_from_exception(self, e):
+        """ This function is used to get appropriate error message from the exception.
+        :param e: Exception object
+        :return: error message
+        """
+        error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+        error_code = "Error code unavailable"
+        try:
+            if e.args:
+                if len(e.args) > 1:
+                    error_code = e.args[0]
+                    error_msg = e.args[1]
+                elif len(e.args) == 1:
+                    error_code = "Error code unavailable"
+                    error_msg = e.args[0]
+            else:
+                error_code = "Error code unavailable"
+                error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+        except:
+            error_code = "Error code unavailable"
+            error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+
+        try:
+            error_msg = self._handle_py_ver_compat_for_input_str(error_msg)
+        except TypeError:
+            error_msg = "Error occurred while connecting to the HTTP server. Please check the asset configuration and|or the action parameters."
+        except:
+            error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
+
+        return "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
 
     def initialize(self):
 
         self._state = self.load_state()
+        # Fetching the Python major version
+        try:
+            self._python_version = int(sys.version_info[0])
+        except:
+            return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
 
         config = self.get_config()
-        self._base_url = config['base_url'].strip('/')
-        self._token_name = config.get('auth_token_name', 'ph-auth-token')
+        self._base_url = self._handle_py_ver_compat_for_input_str(config['base_url'].strip('/'))
+        self._token_name = self._handle_py_ver_compat_for_input_str(config.get('auth_token_name', 'ph-auth-token'))
         self._token = config.get('auth_token')
-        self._username = config.get('username')
+        self._username = self._handle_py_ver_compat_for_input_str(config.get('username'))
         self._password = config.get('password', '')
 
         if 'test_path' in config:
@@ -58,8 +113,10 @@ class HttpConnector(BaseConnector):
                     self._test_path = '/' + config['test_path']
                 else:
                     self._test_path = config['test_path']
+                self._test_path = self._handle_py_ver_compat_for_input_str(self._test_path)
             except Exception as e:
-                return self.set_status(phantom.APP_ERROR, "Given endpoint value is invalid: {0}".format(e))
+                error_message = self._get_error_message_from_exception(e)
+                return self.set_status(phantom.APP_ERROR, "Given endpoint value is invalid: {0}".format(error_message))
 
         if 'timeout' in config:
             try:
@@ -67,7 +124,8 @@ class HttpConnector(BaseConnector):
             except ValueError:
                 return self.set_status(phantom.APP_ERROR, "Given timeout value is not a valid integer")
             except Exception as e:
-                return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(e))
+                error_message = self._get_error_message_from_exception(e)
+                return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(error_message))
 
         parsed = urlparse(self._base_url)
 
@@ -111,6 +169,8 @@ class HttpConnector(BaseConnector):
 
         try:
             soup = BeautifulSoup(response.text, "html.parser")
+            for element in soup(["script", "style", "footer", "nav"]):
+                element.extract()
             error_text = soup.text
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
@@ -121,9 +181,9 @@ class HttpConnector(BaseConnector):
         if 200 <= response.status_code < 400:
             return RetVal(phantom.APP_SUCCESS, soup.text)
 
-        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, error_text)
+        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, unquote_plus(error_text))
 
-        message = message.replace('{', '{{').replace('}', '}}')
+        message = self._handle_py_ver_compat_for_input_str(message.replace('{', '{{').replace('}', '}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), soup.text)
 
@@ -132,15 +192,16 @@ class HttpConnector(BaseConnector):
         try:
             resp_json = response.json()
         except Exception as e:
-            self.debug_print("Unable to parse the response into a dictionary", e)
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(str(e))))
+            error_message = self._get_error_message_from_exception(e)
+            self.debug_print("Unable to parse the response into a dictionary", error_message)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(error_message)))
 
         if 200 <= response.status_code < 400:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         message_template = 'Error from server. Status Code: {0} Data from server: {1}'
         message = message_template.format(
-            response.status_code, response.text.replace('{', '{{').  replace('}', '}}'))
+            response.status_code, self._handle_py_ver_compat_for_input_str(response.text.replace('{', '{{').replace('}', '}}')))
 
         error_field_name = 'error'
         message_field_name = 'message'
@@ -152,7 +213,7 @@ class HttpConnector(BaseConnector):
             else:
                 error_message = error_field
 
-            message = message_template.format(response.status_code, error_message)
+            message = message_template.format(response.status_code, self._handle_py_ver_compat_for_input_str(error_message))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), resp_json)
 
@@ -161,13 +222,14 @@ class HttpConnector(BaseConnector):
         try:
             resp_json = xmltodict.parse(r.text)
         except Exception as e:
-            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse XML response. Error: {0}".format(str(e))))
+            error_message = self._get_error_message_from_exception(e)
+            return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse XML response. Error: {0}".format(error_message)))
 
         if 200 <= r.status_code < 400:
             return RetVal(phantom.APP_SUCCESS, resp_json)
 
         message = "Error from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+                r.status_code, self._handle_py_ver_compat_for_input_str(r.text.replace('{', '{{').replace('}', '}}')))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), resp_json)
 
@@ -194,7 +256,7 @@ class HttpConnector(BaseConnector):
             return RetVal(phantom.APP_SUCCESS, r.text)
 
         message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
-                r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
+                r.status_code, self._handle_py_ver_compat_for_input_str(r.text.replace('{', '{{').replace('}', '}}')))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), r.text)
 
@@ -225,7 +287,8 @@ class HttpConnector(BaseConnector):
                     headers=headers,
                     timeout=self._timeout)
         except Exception as e:
-            return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(str(e)))
+            error_message = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(error_message))
 
         # Return success for get headers action as it returns empty response body
         if self.get_action_identifier() == 'http_head' and r.status_code == 200:
@@ -258,7 +321,7 @@ class HttpConnector(BaseConnector):
         if headers is None:
             return RetVal(phantom.APP_SUCCESS)
 
-        headers = UnicodeDammit(headers).unicode_markup.encode('utf-8')
+        headers = self._handle_py_ver_compat_for_input_str(headers)
 
         if hasattr(headers, 'decode'):
             headers = headers.decode('utf-8')
@@ -266,9 +329,10 @@ class HttpConnector(BaseConnector):
         try:
             headers = json.loads(headers)
         except Exception as e:
+            error_message = self._get_error_message_from_exception(e)
             return RetVal(action_result.set_status(
                 phantom.APP_ERROR,
-                u'Failed to parse headers as JSON object. error: {}, headers: {}'.format(str(e), headers)
+                'Failed to parse headers as JSON object. error: {}, headers: {}'.format(error_message, headers)
             ))
 
         return RetVal(phantom.APP_SUCCESS, headers)
@@ -305,12 +369,12 @@ class HttpConnector(BaseConnector):
 
             location = '/' + location
 
-        location = UnicodeDammit(location).unicode_markup.encode('utf-8')
+        location = self._handle_py_ver_compat_for_input_str(location)
         if hasattr(location, 'decode'):
             location = location.decode('utf-8')
 
         if body:
-            body = UnicodeDammit(body).unicode_markup.encode('utf-8')
+            body = self._handle_py_ver_compat_for_input_str(body)
 
         ret_val, headers = self._get_headers(action_result, param.get('headers'))
 
@@ -319,7 +383,7 @@ class HttpConnector(BaseConnector):
             endpoint=location,
             method=method,
             headers=headers,
-            verify=param['verify_certificate'],
+            verify=param.get('verify_certificate', False),
             data=body
         )
 

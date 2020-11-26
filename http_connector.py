@@ -102,9 +102,14 @@ class HttpConnector(BaseConnector):
 
         config = self.get_config()
         self._base_url = self._handle_py_ver_compat_for_input_str(config['base_url'].strip('/'))
-        self._token_name = self._handle_py_ver_compat_for_input_str(config.get('auth_token_name', 'ph-auth-token'))
+        self._token_name = UnicodeDammit(config.get('auth_token_name', 'ph-auth-token')).unicode_markup.encode('utf-8')
         self._token = config.get('auth_token')
-        self._username = self._handle_py_ver_compat_for_input_str(config.get('username'))
+
+        # Encoding the username with UTF-8, as the default encoding for the requests library
+        # on Phantom v4.8.24304 and v4.9.33153 is latin-1 (for python 3)
+        self._username = config.get('username')
+        if self._username:
+            self._username = UnicodeDammit(self._username).unicode_markup.encode('utf-8')
         self._password = config.get('password', '')
 
         if 'test_path' in config:
@@ -321,7 +326,7 @@ class HttpConnector(BaseConnector):
         if headers is None:
             return RetVal(phantom.APP_SUCCESS)
 
-        headers = self._handle_py_ver_compat_for_input_str(headers)
+        headers = UnicodeDammit(headers).unicode_markup.encode('utf-8')
 
         if hasattr(headers, 'decode'):
             headers = headers.decode('utf-8')
@@ -369,12 +374,13 @@ class HttpConnector(BaseConnector):
 
             location = '/' + location
 
-        location = self._handle_py_ver_compat_for_input_str(location)
+        location = UnicodeDammit(location).unicode_markup.encode('utf-8')
+
         if hasattr(location, 'decode'):
             location = location.decode('utf-8')
 
         if body:
-            body = self._handle_py_ver_compat_for_input_str(body)
+            body = UnicodeDammit(body).unicode_markup.encode('utf-8')
 
         ret_val, headers = self._get_headers(action_result, param.get('headers'))
 

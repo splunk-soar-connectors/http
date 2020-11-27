@@ -68,7 +68,7 @@ class HttpConnector(BaseConnector):
         error_msg = "Unknown error occurred. Please check the asset configuration and|or action parameters."
         error_code = "Error code unavailable"
         try:
-            if e.args:
+            if hasattr(e, 'args'):
                 if len(e.args) > 1:
                     error_code = e.args[0]
                     error_msg = e.args[1]
@@ -102,14 +102,10 @@ class HttpConnector(BaseConnector):
 
         config = self.get_config()
         self._base_url = self._handle_py_ver_compat_for_input_str(config['base_url'].strip('/'))
-        self._token_name = UnicodeDammit(config.get('auth_token_name', 'ph-auth-token')).unicode_markup.encode('utf-8')
+        self._token_name = self._handle_py_ver_compat_for_input_str(config.get('auth_token_name', 'ph-auth-token'))
         self._token = config.get('auth_token')
 
-        # Encoding the username with UTF-8, as the default encoding for the requests library
-        # on Phantom v4.8.24304 and v4.9.33153 is latin-1 (for python 3)
         self._username = config.get('username')
-        if self._username:
-            self._username = UnicodeDammit(self._username).unicode_markup.encode('utf-8')
         self._password = config.get('password', '')
 
         if 'test_path' in config:
@@ -186,9 +182,10 @@ class HttpConnector(BaseConnector):
         if 200 <= response.status_code < 400:
             return RetVal(phantom.APP_SUCCESS, soup.text)
 
+        error_text = self._handle_py_ver_compat_for_input_str(error_text)
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, unquote_plus(error_text))
 
-        message = self._handle_py_ver_compat_for_input_str(message.replace('{', '{{').replace('}', '}}'))
+        message = message.replace('{', '{{').replace('}', '}}')
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), soup.text)
 

@@ -323,7 +323,7 @@ class HttpConnector(BaseConnector):
         if headers is None:
             return RetVal(phantom.APP_SUCCESS)
 
-        headers = UnicodeDammit(headers).unicode_markup.encode('utf-8')
+        headers = self._handle_py_ver_compat_for_input_str(headers)
 
         if hasattr(headers, 'decode'):
             headers = headers.decode('utf-8')
@@ -334,7 +334,7 @@ class HttpConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(e)
             return RetVal(action_result.set_status(
                 phantom.APP_ERROR,
-                'Failed to parse headers as JSON object. error: {}, headers: {}'.format(error_message, headers)
+                'Failed to parse headers as JSON object. error: {}, headers: {}'.format(error_message, self._handle_py_ver_compat_for_input_str(headers))
             ))
 
         return RetVal(phantom.APP_SUCCESS, headers)
@@ -371,15 +371,18 @@ class HttpConnector(BaseConnector):
 
             location = '/' + location
 
-        location = UnicodeDammit(location).unicode_markup.encode('utf-8')
+        location = self._handle_py_ver_compat_for_input_str(location)
 
         if hasattr(location, 'decode'):
             location = location.decode('utf-8')
 
         if body:
-            body = UnicodeDammit(body).unicode_markup.encode('utf-8')
+            body = self._handle_py_ver_compat_for_input_str(body)
 
         ret_val, headers = self._get_headers(action_result, param.get('headers'))
+
+        if phantom.is_fail(ret_val):
+            return ret_val
 
         return self._make_http_call(
             action_result,

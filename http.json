@@ -17,7 +17,7 @@
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
     "latest_tested_versions": [
-        "Tested on 3/27/2020"
+        "Tested on 12/4/2020"
     ],
     "configuration": {
         "base_url": {

@@ -11,13 +11,13 @@
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "4.6.19142",
+    "min_phantom_version": "4.9.39220",
     "license": "Copyright (c) 2016-2020 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
     "latest_tested_versions": [
-        "Tested on 3/27/2020"
+        ""
     ],
     "configuration": {
         "base_url": {
@@ -29,39 +29,33 @@
         "test_path": {
             "data_type": "string",
             "order": 1,
-            "description": "Base URL endpoint for test connectivity. (e.g. /some/specific/endpoint)",
-            "required": false
+            "description": "Base URL endpoint for test connectivity. (e.g. /some/specific/endpoint)"
         },
         "auth_token_name": {
             "data_type": "string",
             "order": 2,
             "description": "Type of authentication token",
-            "default": "ph-auth-token",
-            "required": false
+            "default": "ph-auth-token"
         },
         "auth_token": {
             "data_type": "password",
             "order": 3,
-            "description": "Value of authentication token",
-            "required": false
+            "description": "Value of authentication token"
         },
         "username": {
             "data_type": "string",
             "order": 4,
-            "description": "Username (for HTTP basic auth)",
-            "required": false
+            "description": "Username (for HTTP basic auth)"
         },
         "password": {
             "data_type": "password",
             "order": 5,
-            "description": "Password (for HTTP basic auth)",
-            "required": false
+            "description": "Password (for HTTP basic auth)"
         },
         "timeout": {
             "data_type": "numeric",
             "order": 6,
-            "description": "Timeout for HTTP calls",
-            "required": false
+            "description": "Timeout for HTTP calls"
         }
     },
     "actions": [
@@ -98,14 +92,12 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": false
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
                     "data_type": "string",
-                    "order": 2,
-                    "required": false
+                    "order": 3
                 }
             },
             "output": [
@@ -113,12 +105,13 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
+                        "success",
                         "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.body",
-                    "data_type": "numeric",
+                    "data_type": "string",
                     "example_values": [
                         "{\"name\": \"Bad IP\"}"
                     ]
@@ -138,7 +131,7 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        "false"
+                        false
                     ]
                 },
                 {
@@ -233,8 +226,7 @@
                 "body": {
                     "description": "PATCH body (query string, JSON, etc.)",
                     "data_type": "string",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 },
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
@@ -245,8 +237,7 @@
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
                     "data_type": "string",
-                    "order": 2,
-                    "required": false
+                    "order": 3
                 }
             },
             "output": [
@@ -254,12 +245,13 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
+                        "success",
                         "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.body",
-                    "data_type": "numeric",
+                    "data_type": "string",
                     "example_values": [
                         "{\"name\": \"Bad IP\"}"
                     ]
@@ -279,7 +271,7 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        "false"
+                        false
                     ]
                 },
                 {
@@ -374,8 +366,7 @@
                 "body": {
                     "description": "DELETE body (query string, JSON, etc.)",
                     "data_type": "string",
-                    "order": 1,
-                    "required": false
+                    "order": 1
                 },
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
@@ -386,8 +377,7 @@
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
                     "data_type": "string",
-                    "order": 2,
-                    "required": false
+                    "order": 3
                 }
             },
             "output": [
@@ -395,12 +385,13 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
+                        "success",
                         "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.body",
-                    "data_type": "numeric",
+                    "data_type": "string",
                     "example_values": [
                         "{\"name\": \"Bad IP\"}"
                     ]
@@ -420,7 +411,7 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        "false"
+                        false
                     ]
                 },
                 {
@@ -502,7 +493,6 @@
         {
             "action": "get headers",
             "description": "Perform a REST HEAD call to the server",
-            "verbose": "",
             "type": "generic",
             "identifier": "http_head",
             "read_only": true,
@@ -522,8 +512,7 @@
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
                     "data_type": "string",
-                    "order": 2,
-                    "required": false
+                    "order": 2
                 }
             },
             "output": [
@@ -531,6 +520,7 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
+                        "success",
                         "failed"
                     ]
                 },
@@ -549,7 +539,7 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        "false"
+                        false
                     ]
                 },
                 {
@@ -622,7 +612,6 @@
         {
             "action": "get options",
             "description": "Perform a REST OPTIONS call to the server",
-            "verbose": "",
             "type": "generic",
             "identifier": "http_options",
             "read_only": true,
@@ -642,8 +631,7 @@
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
                     "data_type": "string",
-                    "order": 2,
-                    "required": false
+                    "order": 2
                 }
             },
             "output": [
@@ -651,6 +639,7 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
+                        "success",
                         "failed"
                     ]
                 },
@@ -669,7 +658,7 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        "false"
+                        false
                     ]
                 },
                 {
@@ -742,7 +731,6 @@
         {
             "action": "get data",
             "description": "Perform a REST GET call to the server",
-            "verbose": "",
             "type": "generic",
             "identifier": "http_get",
             "read_only": true,
@@ -762,8 +750,7 @@
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
                     "data_type": "string",
-                    "order": 2,
-                    "required": false
+                    "order": 2
                 }
             },
             "render": {
@@ -777,6 +764,7 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
+                        "success",
                         "failed"
                     ]
                 },
@@ -795,7 +783,7 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        "false"
+                        false
                     ]
                 },
                 {
@@ -874,7 +862,6 @@
         {
             "action": "post data",
             "description": "Perform a REST POST call to the server",
-            "verbose": "",
             "type": "generic",
             "identifier": "http_post",
             "read_only": false,
@@ -900,8 +887,7 @@
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
                     "data_type": "string",
-                    "order": 2,
-                    "required": false
+                    "order": 3
                 }
             },
             "render": {
@@ -915,12 +901,13 @@
                     "data_path": "action_result.status",
                     "data_type": "string",
                     "example_values": [
+                        "success",
                         "failed"
                     ]
                 },
                 {
                     "data_path": "action_result.parameter.body",
-                    "data_type": "numeric",
+                    "data_type": "string",
                     "example_values": [
                         "{\"name\": \"Bad IP\"}"
                     ]
@@ -940,7 +927,7 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        "false"
+                        false
                     ]
                 },
                 {

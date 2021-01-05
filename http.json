@@ -6,13 +6,13 @@
     "publisher": "Splunk",
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.0.15",
-    "utctime_updated": "2020-12-19T00:40:58.000000Z",
+    "app_version": "3.0.18",
+    "utctime_updated": "2021-01-05T12:58:02.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
     "min_phantom_version": "4.9.39220",
-    "license": "Copyright (c) 2016-2020 Splunk Inc.",
+    "license": "Copyright (c) 2016-2021 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
@@ -81,6 +81,10 @@
                     "description": "Location (e.g. path/to/endpoint?query=string)",
                     "data_type": "string",
                     "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "endpoint"
+                    ],
                     "required": true
                 },
                 "body": {
@@ -118,11 +122,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.headers",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"Content-Type\": \"application/json\"}"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.location",
                     "data_type": "string",
+                    "contains": [
+                        "endpoint"
+                    ],
                     "example_values": [
                         "/rest/assets"
                     ]
@@ -148,7 +158,7 @@
                     "data_path": "action_result.data.*.method",
                     "data_type": "string",
                     "example_values": [
-                        "POST"
+                        "PUT"
                     ]
                 },
                 {
@@ -221,6 +231,10 @@
                     "description": "Location (e.g. path/to/endpoint?query=string)",
                     "data_type": "string",
                     "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "endpoint"
+                    ],
                     "required": true
                 },
                 "body": {
@@ -258,11 +272,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.headers",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"Content-Type\": \"application/json\"}"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.location",
                     "data_type": "string",
+                    "contains": [
+                        "endpoint"
+                    ],
                     "example_values": [
                         "/rest/assets"
                     ]
@@ -288,7 +308,7 @@
                     "data_path": "action_result.data.*.method",
                     "data_type": "string",
                     "example_values": [
-                        "POST"
+                        "PATCH"
                     ]
                 },
                 {
@@ -361,6 +381,10 @@
                     "description": "Location (e.g. path/to/endpoint?query=string)",
                     "data_type": "string",
                     "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "endpoint"
+                    ],
                     "required": true
                 },
                 "body": {
@@ -398,11 +422,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.headers",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"Content-Type\": \"application/json\"}"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.location",
                     "data_type": "string",
+                    "contains": [
+                        "endpoint"
+                    ],
                     "example_values": [
                         "/rest/assets"
                     ]
@@ -428,7 +458,7 @@
                     "data_path": "action_result.data.*.method",
                     "data_type": "string",
                     "example_values": [
-                        "POST"
+                        "DELETE"
                     ]
                 },
                 {
@@ -493,7 +523,7 @@
         {
             "action": "get headers",
             "description": "Perform a REST HEAD call to the server",
-            "type": "generic",
+            "type": "investigate",
             "identifier": "http_head",
             "read_only": true,
             "parameters": {
@@ -501,6 +531,10 @@
                     "description": "Location (e.g. path/to/endpoint?query=string)",
                     "data_type": "string",
                     "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "endpoint"
+                    ],
                     "required": true
                 },
                 "verify_certificate": {
@@ -526,11 +560,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.headers",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"User-Agent\": \"automation\"}"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.location",
                     "data_type": "string",
+                    "contains": [
+                        "endpoint"
+                    ],
                     "example_values": [
                         "/rest/cont"
                     ]
@@ -556,16 +596,8 @@
                     "data_path": "action_result.data.*.method",
                     "data_type": "string",
                     "example_values": [
-                        "GET"
+                        "HEAD"
                     ]
-                },
-                {
-                    "data_path": "action_result.data.*.parsed_response_body",
-                    "data_type": "string"
-                },
-                {
-                    "data_path": "action_result.data.*.response_body",
-                    "data_type": "string"
                 },
                 {
                     "data_path": "action_result.data.*.response_headers",
@@ -575,19 +607,22 @@
                     "data_path": "action_result.summary.reason",
                     "data_type": "string",
                     "example_values": [
-                        "Not Found"
+                        "OK"
                     ]
                 },
                 {
                     "data_path": "action_result.summary.status_code",
                     "data_type": "numeric",
                     "example_values": [
-                        404
+                        200
                     ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Status code: 200, Reason: OK"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -600,7 +635,7 @@
                     "data_path": "summary.total_objects_successful",
                     "data_type": "numeric",
                     "example_values": [
-                        0
+                        1
                     ]
                 }
             ],
@@ -612,7 +647,7 @@
         {
             "action": "get options",
             "description": "Perform a REST OPTIONS call to the server",
-            "type": "generic",
+            "type": "investigate",
             "identifier": "http_options",
             "read_only": true,
             "parameters": {
@@ -620,6 +655,10 @@
                     "description": "Location (e.g. path/to/endpoint?query=string)",
                     "data_type": "string",
                     "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "endpoint"
+                    ],
                     "required": true
                 },
                 "verify_certificate": {
@@ -650,6 +689,9 @@
                 {
                     "data_path": "action_result.parameter.location",
                     "data_type": "string",
+                    "contains": [
+                        "endpoint"
+                    ],
                     "example_values": [
                         "/rest/cont"
                     ]
@@ -675,16 +717,22 @@
                     "data_path": "action_result.data.*.method",
                     "data_type": "string",
                     "example_values": [
-                        "GET"
+                        "OPTIONS"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*.parsed_response_body",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "GET,HEAD,PUT,POST,DELETE,PATCH"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.response_body",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "GET,HEAD,PUT,POST,DELETE,PATCH"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.response_headers",
@@ -694,19 +742,22 @@
                     "data_path": "action_result.summary.reason",
                     "data_type": "string",
                     "example_values": [
-                        "Not Found"
+                        "OK"
                     ]
                 },
                 {
                     "data_path": "action_result.summary.status_code",
                     "data_type": "numeric",
                     "example_values": [
-                        404
+                        200
                     ]
                 },
                 {
                     "data_path": "action_result.message",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "Status code: 200, Reason: OK"
+                    ]
                 },
                 {
                     "data_path": "summary.total_objects",
@@ -719,7 +770,7 @@
                     "data_path": "summary.total_objects_successful",
                     "data_type": "numeric",
                     "example_values": [
-                        0
+                        1
                     ]
                 }
             ],
@@ -731,7 +782,7 @@
         {
             "action": "get data",
             "description": "Perform a REST GET call to the server",
-            "type": "generic",
+            "type": "investigate",
             "identifier": "http_get",
             "read_only": true,
             "parameters": {
@@ -739,6 +790,10 @@
                     "description": "Location (e.g. path/to/endpoint?query=string)",
                     "data_type": "string",
                     "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "endpoint"
+                    ],
                     "required": true
                 },
                 "verify_certificate": {
@@ -770,11 +825,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.headers",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"Content-Type\": \"application/json\"}"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.location",
                     "data_type": "string",
+                    "contains": [
+                        "endpoint"
+                    ],
                     "example_values": [
                         "/rest/cont"
                     ]
@@ -870,6 +931,10 @@
                     "description": "Location (e.g. path/to/endpoint)",
                     "data_type": "string",
                     "order": 0,
+                    "primary": true,
+                    "contains": [
+                        "endpoint"
+                    ],
                     "required": true
                 },
                 "body": {
@@ -914,11 +979,17 @@
                 },
                 {
                     "data_path": "action_result.parameter.headers",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "{\"Content-Type\": \"application/json\"}"
+                    ]
                 },
                 {
                     "data_path": "action_result.parameter.location",
                     "data_type": "string",
+                    "contains": [
+                        "endpoint"
+                    ],
                     "example_values": [
                         "/rest/assets"
                     ]

@@ -1,5 +1,5 @@
 # File: http_connector.py
-# Copyright (c) 2016-2020 Splunk Inc.
+# Copyright (c) 2016-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -10,6 +10,9 @@
 
 # Phantom imports
 import phantom.app as phantom
+
+# THIS Connector imports
+from http_consts import *
 
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
@@ -65,31 +68,53 @@ class HttpConnector(BaseConnector):
         :param e: Exception object
         :return: error message
         """
-        error_msg = "Error message unavailable. Please check the asset configuration and|or action parameters."
-        error_code = "Error code unavailable"
+        error_msg = HTTP_ERROR_MESSAGE
+        error_code = HTTP_ERROR_CODE_MESSAGE
         try:
             if hasattr(e, 'args'):
                 if len(e.args) > 1:
                     error_code = e.args[0]
                     error_msg = e.args[1]
                 elif len(e.args) == 1:
-                    error_code = "Error code unavailable"
+                    error_code = HTTP_ERROR_CODE_MESSAGE
                     error_msg = e.args[0]
-            else:
-                error_code = "Error code unavailable"
-                error_msg = "Error message unavailable. Please check the asset configuration and|or action parameters."
         except:
-            error_code = "Error code unavailable"
-            error_msg = "Error message unavailable. Please check the asset configuration and|or action parameters."
+            pass
 
         try:
             error_msg = self._handle_py_ver_compat_for_input_str(error_msg)
         except TypeError:
-            error_msg = "Error occurred while connecting to the HTTP server. Please check the asset configuration and|or the action parameters."
+            error_msg = TYPE_ERROR_MESSAGE
         except:
-            error_msg = "Error message unavailable. Please check the asset configuration and|or action parameters."
+            error_msg = HTTP_ERROR_MESSAGE
 
         return "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
+
+    def _validate_integers(self, action_result, parameter, key, allow_zero=False):
+        """ This method is to check if the provided input parameter value
+        is a non-zero positive integer and returns the integer value of the parameter itself.
+        :param action_result: Action result or BaseConnector object
+        :param parameter: input parameter
+        :return: integer value of the parameter or None in case of failure
+        """
+        try:
+            if not float(parameter).is_integer():
+                self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MESSAGE.format(key=key))
+                return None
+            parameter = int(parameter)
+
+        except:
+            self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MESSAGE.format(key=key))
+            return None
+
+        if parameter < 0:
+            self.set_status(phantom.APP_ERROR, "Please provide a valid non-negative integer value in the {} parameter".format(key))
+            return None
+        if not allow_zero and parameter == 0:
+            self.set_status(phantom.APP_ERROR, "Please provide a positive integer value in the {} parameter".format(key))
+            return None
+
+        return parameter
 
     def initialize(self):
 
@@ -120,13 +145,9 @@ class HttpConnector(BaseConnector):
                 return self.set_status(phantom.APP_ERROR, "Given endpoint value is invalid: {0}".format(error_message))
 
         if 'timeout' in config:
-            try:
-                self._timeout = int(config['timeout'])
-            except ValueError:
-                return self.set_status(phantom.APP_ERROR, "Given timeout value is not a valid integer")
-            except Exception as e:
-                error_message = self._get_error_message_from_exception(e)
-                return self.set_status(phantom.APP_ERROR, "Given timeout value is invalid: {0}".format(error_message))
+            self._timeout = self._validate_integers(self, config.get("timeout"), "timeout")
+            if self._timeout is None:
+                return self.get_status()
 
         parsed = urlparse(self._base_url)
 
@@ -191,8 +212,10 @@ class HttpConnector(BaseConnector):
 
     def _process_json_response(self, response, action_result):
 
+        resp_json = {}
         try:
-            resp_json = response.json()
+            if response:
+                resp_json = response.json()
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
             self.debug_print("Unable to parse the response into a dictionary", error_message)
@@ -221,8 +244,10 @@ class HttpConnector(BaseConnector):
 
     def _process_xml_response(self, r, action_result):
 
+        resp_json = None
         try:
-            resp_json = xmltodict.parse(r.text)
+            if r.text:
+                resp_json = xmltodict.parse(r.text)
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse XML response. Error: {0}".format(error_message)))
@@ -242,6 +267,9 @@ class HttpConnector(BaseConnector):
             action_result.add_debug_data({'r_text': r.text})
             action_result.add_debug_data({'r_headers': r.headers})
 
+        if not r.text:
+            return self._process_empty_reponse(r, action_result)
+
         if 'xml' in r.headers.get('Content-Type', ''):
             return self._process_xml_response(r, action_result)
 
@@ -250,9 +278,6 @@ class HttpConnector(BaseConnector):
 
         if 'html' in r.headers.get('Content-Type', ''):
             return self._process_html_response(r, action_result)
-
-        if not r.text:
-            return self._process_empty_reponse(r, action_result)
 
         if 200 <= r.status_code < 400:
             return RetVal(phantom.APP_SUCCESS, r.text)
@@ -294,6 +319,16 @@ class HttpConnector(BaseConnector):
 
         # Return success for get headers action as it returns empty response body
         if self.get_action_identifier() == 'http_head' and r.status_code == 200:
+            resp_data = {'method': method.upper(), 'location': url}
+            try:
+                resp_data['response_headers'] = dict(r.headers)
+            except Exception:
+                pass
+            action_result.add_data(resp_data)
+            action_result.update_summary({
+                'status_code': r.status_code,
+                'reason': r.reason
+            })
             return action_result.set_status(phantom.APP_SUCCESS)
 
         ret_val, parsed_body = self._process_response(r, action_result)

@@ -12,3 +12,5 @@ HTTP_VALIDATE_INTEGER_MESSAGE = "Please provide a valid integer value in the {ke
 HTTP_ERROR_CODE_MESSAGE = "Error code unavailable"
 HTTP_ERROR_MESSAGE = "Unknown error occurred. Please check the asset configuration and|or action parameters"
 TYPE_ERROR_MESSAGE = "Error occurred while connecting to the HTTP server. Please check the asset configuration and|or the action parameters"
+UNKNOWN_ERR_MSG = "UNKNOWN ERR MSG"
+UNKNOWN_ERR_CODE_MSG = "UNKNOWN ERR CODE MSG"

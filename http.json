@@ -11,11 +11,12 @@
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "4.10.0.40961",
+    "min_phantom_version": "5.0.0",
     "license": "Copyright (c) 2016-2021 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
+    "fips_compliant": true,
     "latest_tested_versions": [
         "Tested with Splunk Trustar on 12th Oct 2021"
     ],

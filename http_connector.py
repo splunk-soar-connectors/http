@@ -1,19 +1,13 @@
 # File: http_connector.py
-#
 # Copyright (c) 2016-2021 Splunk Inc.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+
 #
-# Unless required by applicable law or agreed to in writing, software distributed under
-# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-# either express or implied. See the License for the specific language governing permissions
-# and limitations under the License.
-#
-#
+# --
+
 # Phantom imports
 import phantom.app as phantom
 
@@ -22,17 +16,28 @@ from http_consts import *
 
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
+from phantom.vault import Vault as Vault
+import phantom.rules as ph_rules
 
+import os
+import re
 import json
 import requests
 import xmltodict
+import uuid
+import magic
+import shutil
+import subprocess
+
 from bs4 import BeautifulSoup, UnicodeDammit
 
+
 try:
-    from urllib.parse import urlparse, unquote_plus
+    from urllib.parse import urlparse, unquote_plus, unquote
 except ImportError:
     from urllib import unquote_plus
     from urlparse import urlparse
+    from urllib import unquote
 
 import socket
 import sys
@@ -45,6 +50,15 @@ class RetVal(tuple):
 
 class HttpConnector(BaseConnector):
 
+    MAGIC_FORMATS = [
+        (re.compile('^PE.* Windows'), ['pe file'], '.exe'),
+        (re.compile('^MS-DOS executable'), ['pe file'], '.exe'),
+        (re.compile('^PDF '), ['pdf'], '.pdf'),
+        (re.compile('^MDMP crash'), ['process dump'], '.dmp'),
+        (re.compile('^Macromedia Flash'), ['flash'], '.flv'),
+        (re.compile('^tcpdump capture'), ['pcap'], '.pcap'),
+    ]
+
     def __init__(self):
 
         super(HttpConnector, self).__init__()
@@ -54,15 +68,6 @@ class HttpConnector(BaseConnector):
         self._test_path = None
         self._timeout = None
         self._python_version = None
-        self._token_name = None
-        self._token = None
-        self._username = None
-        self._password = None
-        self._oauth_token_url = None
-        self._client_id = None
-        self._client_secret = None
-        self._state = None
-        self.access_token_retry = True
 
     def _handle_py_ver_compat_for_input_str(self, input_str):
         """
@@ -73,8 +78,7 @@ class HttpConnector(BaseConnector):
         try:
             if input_str and self._python_version < 3:
                 input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
-        except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+        except:
             self.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
 
         return input_str
@@ -94,16 +98,14 @@ class HttpConnector(BaseConnector):
                 elif len(e.args) == 1:
                     error_code = HTTP_ERROR_CODE_MESSAGE
                     error_msg = e.args[0]
-        except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+        except:
             pass
 
         try:
             error_msg = self._handle_py_ver_compat_for_input_str(error_msg)
         except TypeError:
             error_msg = TYPE_ERROR_MESSAGE
-        except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+        except:
             error_msg = HTTP_ERROR_MESSAGE
 
         return "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
@@ -121,8 +123,7 @@ class HttpConnector(BaseConnector):
                 return None
             parameter = int(parameter)
 
-        except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+        except:
             self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MESSAGE.format(key=key))
             return None
 
@@ -141,8 +142,7 @@ class HttpConnector(BaseConnector):
         # Fetching the Python major version
         try:
             self._python_version = int(sys.version_info[0])
-        except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+        except:
             return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
 
         config = self.get_config()
@@ -152,14 +152,6 @@ class HttpConnector(BaseConnector):
 
         self._username = config.get('username')
         self._password = config.get('password', '')
-
-        self._oauth_token_url = config.get('oauth_token_url')
-        if self._oauth_token_url:
-            self._oauth_token_url = self._oauth_token_url.strip('/')
-        self._client_id = config.get('client_id')
-        self._client_secret = config.get('client_secret')
-
-        self._state = self.load_state()
 
         if 'test_path' in config:
             try:
@@ -179,20 +171,19 @@ class HttpConnector(BaseConnector):
 
         parsed = urlparse(self._base_url)
 
-        if not parsed.scheme or not parsed.hostname:
+        if not parsed.scheme or \
+           not parsed.hostname:
             return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
 
         # Make sure base_url isn't 127.0.0.1
         addr = parsed.hostname
         try:
             unpacked = socket.gethostbyname(addr)
-        except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+        except:
             try:
                 packed = socket.inet_aton(addr)
                 unpacked = socket.inet_aton(packed)
-            except Exception as ex:
-                self.debug_print("Exception: {}".format(ex))
+            except:
                 # gethostbyname can fail even when the addr is a hostname
                 # If that happens, I think we can assume that it isn't localhost
                 unpacked = ""
@@ -226,8 +217,7 @@ class HttpConnector(BaseConnector):
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
-        except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+        except:
             error_text = "Cannot parse error details"
 
         if 200 <= response.status_code < 400:
@@ -317,53 +307,47 @@ class HttpConnector(BaseConnector):
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), r.text)
 
-    def _make_http_call(self, action_result, endpoint='', method='get', headers=None, verify=False, data=None):
+    def _make_http_call(self, action_result, endpoint='', method='get', headers=None, verify=False, data=None, files=None):
 
         auth = None
-        headers = {} if not headers else headers
-        if self._username:
-            self.save_progress("Using HTTP Basic auth to authenticate")
-            auth = (self._username, self._password)
-        elif self._oauth_token_url and self._client_id:
-            self.save_progress("Using OAuth to authenticate")
-            access_token = self._generate_api_token(action_result)
-            if phantom.is_fail(access_token):
-                return None
-            headers['Authorization'] = 'Bearer {}'.format(access_token)
-        elif self._token_name:
-            self.save_progress("Using provided token to authenticate")
-            if self._token and self._token_name not in headers:
+        if self._token:
+            if not headers:
+                headers = {}
+            if self._token_name not in headers:
                 headers[self._token_name] = self._token
-        else:
-            return action_result.set_status(phantom.APP_ERROR, "No authentication method set")
+        elif self._username:
+            auth = (self._username, self._password)
 
         try:
             request_func = getattr(requests, method)
         except AttributeError:
             return action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method))
 
-        url = self._base_url + endpoint
+        if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
+            url = endpoint
+            auth = None
+        else:
+            url = self._base_url + endpoint
 
         try:
             r = request_func(
                     url,
                     auth=auth,
-                    data=UnicodeDammit(data).unicode_markup.encode('utf-8') if isinstance(data, str) else data,
+                    data=data,
                     verify=verify,
                     headers=headers,
+                    files=files,
                     timeout=self._timeout)
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(error_message))
 
-        # fetch new token if old one has expired
-        if (r.status_code == 401) and self.access_token_retry:
-            self.save_progress("Got error: {}".format(r.status_code))
-            self._state.pop('access_token')
-            self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
-            return self._make_http_call(action_result, endpoint, method, headers, verify, data)
+        ret_val, parsed_body = self._process_response(r, action_result)
 
         # Return success for get headers action as it returns empty response body
+        if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
+            self.debug_print("Response for {0} : {1}".format(self.get_action_identifier(), r.text))
+            return ret_val, r
         if self.get_action_identifier() == 'http_head' and r.status_code == 200:
             resp_data = {'method': method.upper(), 'location': url}
             try:
@@ -375,15 +359,11 @@ class HttpConnector(BaseConnector):
                 'status_code': r.status_code,
                 'reason': r.reason
             })
-            self.access_token_retry = True
             return action_result.set_status(phantom.APP_SUCCESS)
 
-        ret_val, parsed_body = self._process_response(r, action_result)
-        resp_data = {
-            'method': method.upper(),
-            'location': url, 'parsed_response_body': parsed_body,
-            'response_body': r.text if 'json' not in r.headers.get('Content-Type', '') and 'javascript' not in r.headers.get('Content-Type', '') else parsed_body
-        }
+        resp_data = {'method': method.upper(), 'location': url}
+        resp_data['parsed_response_body'] = parsed_body
+        resp_data['response_body'] = r.text if 'json' not in r.headers.get('Content-Type', '') and 'javascript' not in r.headers.get('Content-Type', '') else parsed_body
         try:
             resp_data['response_headers'] = dict(r.headers)
         except Exception:
@@ -422,42 +402,6 @@ class HttpConnector(BaseConnector):
             ))
 
         return RetVal(phantom.APP_SUCCESS, headers)
-
-    def _generate_api_token(self, action_result, new_token=False):
-        """ This function is used to generate token
-
-        :param action_result: object of ActionResult class
-        :param new_token: boolean. weather to fetch new token or fetch old access token
-        :return: access token
-        """
-        self.save_progress("Fetching access token")
-
-        access_token = None
-        if not new_token:
-            self.save_progress("Using old token")
-            access_token = self._state.get('access_token')
-
-        if access_token is not None:
-            return access_token
-
-        payload = {"grant_type": "client_credentials"}
-
-        self.save_progress("Fetching new token")
-        # Querying endpoint to generate token
-        response = requests.post(self._oauth_token_url, auth=(self._client_id, self._client_secret), data=payload)
-        if response.status_code != 200:
-            return action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(self._oauth_token_url, response.status_code))
-
-        try:
-            access_token = json.loads(response.text).get("access_token")
-        except Exception:
-            return action_result.set_status(phantom.APP_ERROR, "Error parsing response from server while fetching token")
-
-        if not access_token:
-            return action_result.set_status(phantom.APP_ERROR, "Access token not found in response body")
-
-        self._state['access_token'] = access_token
-        return access_token
 
     def _handle_test_connectivity(self, param):
 
@@ -513,6 +457,177 @@ class HttpConnector(BaseConnector):
             data=body
         )
 
+    def _handle_get_file(self, param, method):
+
+        action_result = ActionResult(dict(param))
+        self.add_action_result(action_result)
+
+        hostname = param[HTTP_JSON_HOSTNAME]
+        file_path = param[HTTP_JSON_FILE_PATH]
+
+        endpoint = hostname + file_path
+        # /some/dir/file_name
+        file_name = file_path.split('/')[-1]
+        if hasattr(Vault, 'get_vault_tmp_dir'):
+            vault_path = '{}/{}'.format(Vault.get_vault_tmp_dir(), file_name)
+        else:
+            vault_path = '/vault/tmp/{}'.format(file_name)
+
+        try:
+            ret_val, r = self._make_http_call(
+                action_result,
+                endpoint=endpoint,
+                method=method,
+                verify=param.get('verify_certificate', False)
+            )
+        except Exception as e:
+            err = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        if (r.status_code == 200):
+            return self._save_file_to_vault(action_result, r, file_name)
+        else:
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=r.status_code))
+
+    def _handle_put_file(self, param, method):
+
+        action_result = ActionResult(dict(param))
+        self.add_action_result(action_result)
+
+        # fetching phantom vault details
+        try:
+            success, message, vault_meta_info = ph_rules.vault_info(vault_id=param[HTTP_JSON_VAULT_ID])
+            vault_meta_info = list(vault_meta_info)
+            if not success or not vault_meta_info:
+                error_msg = " Error Details: {}".format(unquote(message)) if message else ''
+                return action_result.set_status(phantom.APP_ERROR,
+                                                "{}.{}".format(HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG, error_msg))
+        except Exception as e:
+            err = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR,
+                                            "{}. {}".format(HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG, err))
+
+        # phantom vault file path
+        vault_path = vault_meta_info[0].get('path')
+        with open(vault_path, 'rb') as f:
+            content = f.read()
+
+        # phantom vault file name
+        dest_file_name = vault_meta_info[0].get('name')
+        file_dest = param[HTTP_JSON_FILE_DEST]
+        endpoint = param[HTTP_JSON_HOST]
+
+        if file_dest.startswith('/'):
+            file_dest = file_dest[1:]
+
+        if file_dest.endswith('/'):
+            file_dest = file_dest[:-1]
+
+        if endpoint.endswith('/'):
+            endpoint = endpoint[:-1]
+
+        worker_dir = self.get_state_dir()
+        file_path = '{}/{}'.format(worker_dir, dest_file_name)
+
+        try:
+            with open(file_path, 'wb') as fout:
+                fout.write(content)
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, self._get_error_message_from_exception(e))
+
+        # Returning an error if the filename is included in the file_destination path
+        if dest_file_name in file_dest:
+            return action_result.set_status(phantom.APP_ERROR, HTTP_EXCLUDE_FILENAME_ERR_MSG)
+
+        destination_path = "{}{}{}{}{}".format(endpoint,
+                                           '/' if file_dest[-1] != '/' else '', file_dest, '/' if dest_file_name[-1] != '/' else '', dest_file_name)
+
+        params = {'file_path': file_dest}
+        try:
+            with open(file_path, 'rb') as f:
+                # Set file to be uploaded
+                files = {
+                    'file': f
+                }
+
+                response = requests.post(endpoint, files=files, params=params)
+        except FileNotFoundError as e:
+            err = self._get_error_message_from_exception(e)
+            err = "{}. {}".format(err, HTTP_FILE_NOT_FOUND_ERR_MSG)
+            return action_result.set_status(phantom.APP_ERROR, HTTP_PUT_FILE_ERR_MSG.format(error=err))
+        except Exception as e:
+            err = self._get_error_message_from_exception(e)
+            self.debug_print("In exception. Error: {}".format(err))
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
+
+        summary = {'file_sent': destination_path}
+        action_result.update_summary(summary)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _save_file_to_vault(self, action_result, response, file_name):
+
+        # Create a tmp directory on the vault partition
+
+        guid = uuid.uuid4()
+
+        if hasattr(Vault, 'get_vault_tmp_dir'):
+            temp_dir = Vault.get_vault_tmp_dir()
+        else:
+            temp_dir = '/vault/tmp'
+
+        local_dir = temp_dir + '/{}'.format(guid)
+        self.save_progress("Using temp directory: {0}".format(guid))
+
+        try:
+            os.makedirs(local_dir)
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR,
+                                            "Unable to create temporary folder {0}.".format(temp_dir), e)
+
+        file_path = "{0}/{1}".format(local_dir, file_name)
+
+        # open and download the file
+        with open(file_path, 'wb') as f:
+            f.write(response.content)
+
+        contains = []
+        file_ext = ''
+        magic_str = magic.from_file(file_path)
+        for regex, cur_contains, extension in self.MAGIC_FORMATS:
+            if regex.match(magic_str):
+                contains.extend(cur_contains)
+                if (not file_ext):
+                    file_ext = extension
+
+        file_name = '{}{}'.format(file_name, file_ext)
+
+        # move the file to the vault
+        status, vault_ret_message, vault_id = ph_rules.vault_add(file_location=file_path,
+                                                                 container=self.get_container_id(), file_name=file_name,
+                                                                 metadata={'contains': contains})
+
+        curr_data = {}
+
+        if status:
+            curr_data[phantom.APP_JSON_VAULT_ID] = vault_id
+            curr_data[phantom.APP_JSON_NAME] = file_name
+            if (contains):
+                curr_data['file_type'] = ','.join(contains)
+            action_result.add_data(curr_data)
+            action_result.update_summary(curr_data)
+            action_result.set_status(phantom.APP_SUCCESS, "File successfully retrieved and added to vault")
+        else:
+            action_result.set_status(phantom.APP_ERROR, phantom.APP_ERR_FILE_ADD_TO_VAULT)
+            action_result.append_to_message(vault_ret_message)
+
+        # remove the /tmp/<> temporary directory
+        shutil.rmtree(local_dir)
+
+        return action_result.get_status()
+
     def _handle_get(self, param):
         return self._verb(param, 'get')
 
@@ -566,6 +681,12 @@ class HttpConnector(BaseConnector):
         elif action_id == 'http_options':
             ret_val = self._handle_options(param)
 
+        elif action_id == 'get_file':
+            ret_val = self._handle_get_file(param, 'get')
+
+        elif action_id == 'put_file':
+            ret_val = self._handle_put_file(param, 'post')
+
         return ret_val
 
 
@@ -584,7 +705,7 @@ if __name__ == '__main__':
     args = argparser.parse_args()
     session_id = None
 
-    if args.username and args.password:
+    if (args.username and args.password):
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
@@ -601,7 +722,7 @@ if __name__ == '__main__':
             print("Unable to get session id from the platform. Error: {0}".format(str(e)))
             exit(1)
 
-    if len(sys.argv) < 2:
+    if (len(sys.argv) < 2):
         print("No test json specified as input")
         exit(0)
 
@@ -613,7 +734,7 @@ if __name__ == '__main__':
         connector = HttpConnector()
         connector.print_progress_message = True
 
-        if session_id is not None:
+        if (session_id is not None):
             in_json['user_session_token'] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)

@@ -6,19 +6,18 @@
     "publisher": "Splunk",
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.2.6",
-    "utctime_updated": "2021-11-30T21:23:33.000000Z",
+    "app_version": "3.0.22",
+    "utctime_updated": "2021-01-06T22:42:40.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "5.0.0",
+    "min_phantom_version": "4.9.39220",
     "license": "Copyright (c) 2016-2021 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
-    "fips_compliant": true,
     "latest_tested_versions": [
-        "Tested with Splunk Trustar on 12th Oct 2021"
+        ""
     ],
     "configuration": {
         "base_url": {
@@ -53,29 +52,9 @@
             "order": 5,
             "description": "Password (for HTTP basic auth)"
         },
-        "oauth_token_url": {
-            "data_type": "string",
-            "order": 6,
-            "description": "URL to fetch oauth token from"
-        },
-        "placeholder": {
-            "data_type": "ph",
-            "order": 7,
-            "description": ""
-        },
-        "client_id": {
-            "data_type": "string",
-            "order": 8,
-            "description": "Client ID (for OAuth)"
-        },
-        "client_secret": {
-            "data_type": "password",
-            "order": 9,
-            "description": "Client Secret (for OAuth)"
-        },
         "timeout": {
             "data_type": "numeric",
-            "order": 10,
+            "order": 6,
             "description": "Timeout for HTTP calls"
         }
     },
@@ -1094,42 +1073,261 @@
                 }
             ],
             "versions": "EQ(*)"
+        },
+        {
+            "action": "get file",
+            "description": "Retrieve a file from the endpoint and save it to the vault",
+            "verbose": "The file path needs to be an absolute path. For example, <b>/home/USER/file.tgz</b> instead of <b>~/file.tgz</b>.",
+            "type": "investigate",
+            "identifier": "get_file",
+            "read_only": true,
+            "parameters": {
+                "hostname": {
+                    "data_type": "string",
+                    "order": 0,
+                    "description": "Hostname to execute command on",
+                    "contains": [
+                        "host name"
+                    ],
+                    "required": true,
+                    "primary": true
+                },
+                "file_path": {
+                    "data_type": "string",
+                    "order": 1,
+                    "description": "Full path of the file to download (include filename)",
+                    "contains": [
+                        "file path"
+                    ],
+                    "required": true,
+                    "primary": true
+                }
+            },
+            "render": {
+                "width": 12,
+                "title": "Get File",
+                "type": "table",
+                "height": 5
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.file_path",
+                    "data_type": "string",
+                    "contains": [
+                        "file path"
+                    ],
+                    "example_values": [
+                        "/home/USER/file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.hostname",
+                    "data_type": "string",
+                    "contains": [
+                        "host name"
+                    ],
+                    "example_values": [
+                        "http://192.168.0.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary.exit_status",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.size",
+                    "data_type": "numeric",
+                    "example_values": [
+                        412
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.vault_id",
+                    "data_type": "string",
+                    "contains": [
+                        "vault id"
+                    ],
+                    "column_order": 1,
+                    "column_name": "Vault ID",
+                    "example_values": [
+                        "dc871f816c4d179f3a3cea24b4bc81a67562c"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "column_order": 0,
+                    "column_name": "Result Message",
+                    "example_values": [
+                        "Transferred file"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "put file",
+            "description": "Put a file from the vault to another location",
+            "type": "generic",
+            "identifier": "put_file",
+            "verbose": "The file path needs to be an absolute path. For example, <b>/home/USER/</b> instead of <b>~/USER</b>.",
+            "read_only": false,
+            "parameters": {
+                "host": {
+                    "data_type": "string",
+                    "order": 0,
+                    "description": "Hostname/IP to execute command on",
+                    "contains": [
+                        "host name"
+                    ],
+                    "required": true,
+                    "primary": true
+                },
+                "vault_id": {
+                    "data_type": "string",
+                    "order": 1,
+                    "contains": [
+                        "vault id"
+                    ],
+                    "description": "Vault ID of file",
+                    "required": true,
+                    "primary": true
+                },
+                "file_destination": {
+                    "description": "File destination path (exclude filename)",
+                    "data_type": "string",
+                    "order": 2,
+                    "contains": [
+                        "file path"
+                    ],
+                    "required": false,
+                    "primary": true
+                }
+            },
+            "render": {
+                "width": 12,
+                "title": "Put File",
+                "type": "table",
+                "height": 5
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.file_destination",
+                    "data_type": "string",
+                    "contains": [
+                        "file path"
+                    ],
+                    "example_values": [
+                        "/home/USER/"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.hostname",
+                    "data_type": "string",
+                    "contains": [
+                        "host name"
+                    ],
+                    "example_values": [
+                        "http://192.168.0.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.vault_id",
+                    "data_type": "string",
+                    "contains": [
+                        "vault id"
+                    ],
+                    "column_order": 0,
+                    "column_name": "Vault ID",
+                    "example_values": [
+                        "dc871f816c4d179f3a3cea24b4bc81a67562c"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary.file_sent",
+                    "data_type": "string",
+                    "column_order": 1,
+                    "column_name": "File Transferred",
+                    "contains": [
+                        "file path"
+                    ],
+                    "example_values": [
+                        "/home/USER/file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "column_order": 2,
+                    "column_name": "Result Message",
+                    "example_values": [
+                        "File sent: /home/USER/file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
         }
-    ],
-    "pip_dependencies": {
-        "wheel": [
-            {
-                "module": "beautifulsoup4",
-                "input_file": "wheels/beautifulsoup4-4.9.1-py3-none-any.whl"
-            },
-            {
-                "module": "certifi",
-                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
-            },
-            {
-                "module": "chardet",
-                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
-            },
-            {
-                "module": "idna",
-                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
-            },
-            {
-                "module": "requests",
-                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
-            },
-            {
-                "module": "soupsieve",
-                "input_file": "wheels/soupsieve-2.3.1-py3-none-any.whl"
-            },
-            {
-                "module": "urllib3",
-                "input_file": "wheels/urllib3-1.26.7-py2.py3-none-any.whl"
-            },
-            {
-                "module": "xmltodict",
-                "input_file": "wheels/xmltodict-0.12.0-py2.py3-none-any.whl"
-            }
-        ]
-    }
+    ]
 }

@@ -68,6 +68,15 @@ class HttpConnector(BaseConnector):
         self._test_path = None
         self._timeout = None
         self._python_version = None
+        self._token_name = None
+        self._token = None
+        self._username = None
+        self._password = None
+        self._oauth_token_url = None
+        self._client_id = None
+        self._client_secret = None
+        self._state = None
+        self.access_token_retry = True
 
     def _handle_py_ver_compat_for_input_str(self, input_str):
         """
@@ -78,7 +87,8 @@ class HttpConnector(BaseConnector):
         try:
             if input_str and self._python_version < 3:
                 input_str = UnicodeDammit(input_str).unicode_markup.encode('utf-8')
-        except:
+        except Exception as ex:
+            self.debug_print("Exception: {}".format(ex))
             self.debug_print("Error occurred while handling python 2to3 compatibility for the input string")
 
         return input_str
@@ -98,14 +108,16 @@ class HttpConnector(BaseConnector):
                 elif len(e.args) == 1:
                     error_code = HTTP_ERROR_CODE_MESSAGE
                     error_msg = e.args[0]
-        except:
+        except Exception as ex:
+            self.debug_print("Exception: {}".format(ex))
             pass
 
         try:
             error_msg = self._handle_py_ver_compat_for_input_str(error_msg)
         except TypeError:
             error_msg = TYPE_ERROR_MESSAGE
-        except:
+        except Exception as ex:
+            self.debug_print("Exception: {}".format(ex))
             error_msg = HTTP_ERROR_MESSAGE
 
         return "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
@@ -123,7 +135,8 @@ class HttpConnector(BaseConnector):
                 return None
             parameter = int(parameter)
 
-        except:
+        except Exception as ex:
+            self.debug_print("Exception: {}".format(ex))
             self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MESSAGE.format(key=key))
             return None
 
@@ -142,7 +155,8 @@ class HttpConnector(BaseConnector):
         # Fetching the Python major version
         try:
             self._python_version = int(sys.version_info[0])
-        except:
+        except Exception as ex:
+            self.debug_print("Exception: {}".format(ex))
             return self.set_status(phantom.APP_ERROR, "Error occurred while getting the Phantom server's Python major version.")
 
         config = self.get_config()
@@ -152,6 +166,14 @@ class HttpConnector(BaseConnector):
 
         self._username = config.get('username')
         self._password = config.get('password', '')
+
+        self._oauth_token_url = config.get('oauth_token_url')
+        if self._oauth_token_url:
+            self._oauth_token_url = self._oauth_token_url.strip('/')
+        self._client_id = config.get('client_id')
+        self._client_secret = config.get('client_secret')
+
+        self._state = self.load_state()
 
         if 'test_path' in config:
             try:
@@ -171,19 +193,20 @@ class HttpConnector(BaseConnector):
 
         parsed = urlparse(self._base_url)
 
-        if not parsed.scheme or \
-           not parsed.hostname:
+        if not parsed.scheme or not parsed.hostname:
             return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
 
         # Make sure base_url isn't 127.0.0.1
         addr = parsed.hostname
         try:
             unpacked = socket.gethostbyname(addr)
-        except:
+        except Exception as ex:
+            self.debug_print("Exception: {}".format(ex))
             try:
                 packed = socket.inet_aton(addr)
                 unpacked = socket.inet_aton(packed)
-            except:
+            except Exception as ex:
+                self.debug_print("Exception: {}".format(ex))
                 # gethostbyname can fail even when the addr is a hostname
                 # If that happens, I think we can assume that it isn't localhost
                 unpacked = ""
@@ -217,7 +240,8 @@ class HttpConnector(BaseConnector):
             split_lines = error_text.split('\n')
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
-        except:
+        except Exception as ex:
+            self.debug_print("Exception: {}".format(ex))
             error_text = "Cannot parse error details"
 
         if 200 <= response.status_code < 400:
@@ -310,13 +334,22 @@ class HttpConnector(BaseConnector):
     def _make_http_call(self, action_result, endpoint='', method='get', headers=None, verify=False, data=None, files=None):
 
         auth = None
-        if self._token:
-            if not headers:
-                headers = {}
-            if self._token_name not in headers:
-                headers[self._token_name] = self._token
-        elif self._username:
+        headers = {} if not headers else headers
+        if self._username:
+            self.save_progress("Using HTTP Basic auth to authenticate")
             auth = (self._username, self._password)
+        elif self._oauth_token_url and self._client_id:
+            self.save_progress("Using OAuth to authenticate")
+            access_token = self._generate_api_token(action_result)
+            if phantom.is_fail(access_token):
+                return None
+            headers['Authorization'] = 'Bearer {}'.format(access_token)
+        elif self._token_name:
+            self.save_progress("Using provided token to authenticate")
+            if self._token and self._token_name not in headers:
+                headers[self._token_name] = self._token
+        else:
+            return action_result.set_status(phantom.APP_ERROR, "No authentication method set")
 
         try:
             request_func = getattr(requests, method)
@@ -342,12 +375,14 @@ class HttpConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(error_message))
 
-        ret_val, parsed_body = self._process_response(r, action_result)
+        # fetch new token if old one has expired
+        if (r.status_code == 401) and self.access_token_retry:
+            self.save_progress("Got error: {}".format(r.status_code))
+            self._state.pop('access_token')
+            self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
+            return self._make_http_call(action_result, endpoint, method, headers, verify, data)
 
         # Return success for get headers action as it returns empty response body
-        if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
-            self.debug_print("Response for {0} : {1}".format(self.get_action_identifier(), r.text))
-            return ret_val, r
         if self.get_action_identifier() == 'http_head' and r.status_code == 200:
             resp_data = {'method': method.upper(), 'location': url}
             try:
@@ -359,11 +394,22 @@ class HttpConnector(BaseConnector):
                 'status_code': r.status_code,
                 'reason': r.reason
             })
+            self.access_token_retry = True
             return action_result.set_status(phantom.APP_SUCCESS)
 
-        resp_data = {'method': method.upper(), 'location': url}
-        resp_data['parsed_response_body'] = parsed_body
-        resp_data['response_body'] = r.text if 'json' not in r.headers.get('Content-Type', '') and 'javascript' not in r.headers.get('Content-Type', '') else parsed_body
+        ret_val, parsed_body = self._process_response(r, action_result)
+
+        if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
+            self.debug_print("Response for {0} : {1}".format(self.get_action_identifier(), r.text))
+            return ret_val, r
+
+        resp_data = {
+            'method': method.upper(),
+            'location': url, 'parsed_response_body': parsed_body,
+            'response_body': r.text if 'json' not in r.headers.get('Content-Type',
+                                                                   '') and 'javascript' not in r.headers.get(
+                'Content-Type', '') else parsed_body
+        }
         try:
             resp_data['response_headers'] = dict(r.headers)
         except Exception:
@@ -402,6 +448,42 @@ class HttpConnector(BaseConnector):
             ))
 
         return RetVal(phantom.APP_SUCCESS, headers)
+
+    def _generate_api_token(self, action_result, new_token=False):
+        """ This function is used to generate token
+
+        :param action_result: object of ActionResult class
+        :param new_token: boolean. weather to fetch new token or fetch old access token
+        :return: access token
+        """
+        self.save_progress("Fetching access token")
+
+        access_token = None
+        if not new_token:
+            self.save_progress("Using old token")
+            access_token = self._state.get('access_token')
+
+        if access_token is not None:
+            return access_token
+
+        payload = {"grant_type": "client_credentials"}
+
+        self.save_progress("Fetching new token")
+        # Querying endpoint to generate token
+        response = requests.post(self._oauth_token_url, auth=(self._client_id, self._client_secret), data=payload)
+        if response.status_code != 200:
+            return action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(self._oauth_token_url, response.status_code))
+
+        try:
+            access_token = json.loads(response.text).get("access_token")
+        except Exception:
+            return action_result.set_status(phantom.APP_ERROR, "Error parsing response from server while fetching token")
+
+        if not access_token:
+            return action_result.set_status(phantom.APP_ERROR, "Access token not found in response body")
+
+        self._state['access_token'] = access_token
+        return access_token
 
     def _handle_test_connectivity(self, param):
 
@@ -705,7 +787,7 @@ if __name__ == '__main__':
     args = argparser.parse_args()
     session_id = None
 
-    if (args.username and args.password):
+    if args.username and args.password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
@@ -722,7 +804,7 @@ if __name__ == '__main__':
             print("Unable to get session id from the platform. Error: {0}".format(str(e)))
             exit(1)
 
-    if (len(sys.argv) < 2):
+    if len(sys.argv) < 2:
         print("No test json specified as input")
         exit(0)
 
@@ -734,7 +816,7 @@ if __name__ == '__main__':
         connector = HttpConnector()
         connector.print_progress_message = True
 
-        if (session_id is not None):
+        if session_id is not None:
             in_json['user_session_token'] = session_id
 
         ret_val = connector._handle_action(json.dumps(in_json), None)

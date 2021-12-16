@@ -6,18 +6,19 @@
     "publisher": "Splunk",
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.0.22",
-    "utctime_updated": "2021-01-06T22:42:40.000000Z",
+    "app_version": "3.3.0",
+    "utctime_updated": "2021-10-19T02:55:38.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "4.9.39220",
+    "min_phantom_version": "5.0.0",
     "license": "Copyright (c) 2016-2021 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
+    "fips_compliant": true,
     "latest_tested_versions": [
-        ""
+        "Tested with Splunk Trustar on 12th Oct 2021"
     ],
     "configuration": {
         "base_url": {
@@ -52,9 +53,29 @@
             "order": 5,
             "description": "Password (for HTTP basic auth)"
         },
+        "oauth_token_url": {
+            "data_type": "string",
+            "order": 6,
+            "description": "URL to fetch oauth token from"
+        },
+        "placeholder": {
+            "data_type": "ph",
+            "order": 7,
+            "description": ""
+        },
+        "client_id": {
+            "data_type": "string",
+            "order": 8,
+            "description": "Client ID (for OAuth)"
+        },
+        "client_secret": {
+            "data_type": "password",
+            "order": 9,
+            "description": "Client Secret (for OAuth)"
+        },
         "timeout": {
             "data_type": "numeric",
-            "order": 6,
+            "order": 10,
             "description": "Timeout for HTTP calls"
         }
     },

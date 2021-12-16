@@ -366,7 +366,7 @@ class HttpConnector(BaseConnector):
             r = request_func(
                     url,
                     auth=auth,
-                    data=data,
+                    data=UnicodeDammit(data).unicode_markup.encode('utf-8') if isinstance(data, str) else data,
                     verify=verify,
                     headers=headers,
                     files=files,

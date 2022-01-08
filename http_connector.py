@@ -1,18 +1,24 @@
 # File: http_connector.py
+#
 # Copyright (c) 2016-2022 Splunk Inc.
 #
-# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
-# without a valid written license from Splunk Inc. is PROHIBITED.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# --
+# Unless required by applicable law or agreed to in writing, software distributed under
+# the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied. See the License for the specific language governing permissions
+# and limitations under the License.
+#
 
 # Phantom imports
+
 import phantom.app as phantom
 
 # THIS Connector imports
-from http_consts import *
 
 from phantom.base_connector import BaseConnector
 from phantom.action_result import ActionResult
@@ -22,6 +28,8 @@ import phantom.rules as ph_rules
 import os
 import re
 import json
+
+import phantom.app as phantom
 import requests
 import xmltodict
 import uuid
@@ -30,7 +38,10 @@ import shutil
 import subprocess
 
 from bs4 import BeautifulSoup, UnicodeDammit
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
 
+from http_consts import *
 
 try:
     from urllib.parse import urlparse, unquote_plus, unquote
@@ -194,7 +205,8 @@ class HttpConnector(BaseConnector):
         parsed = urlparse(self._base_url)
 
         if not parsed.scheme or not parsed.hostname:
-            return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(self._base_url))
+            return self.set_status(phantom.APP_ERROR, 'Failed to parse URL ({}). Should look like "http(s)://location/optional_path"'.format(
+                self._base_url))
 
         # Make sure base_url isn't 127.0.0.1
         addr = parsed.hostname
@@ -400,7 +412,6 @@ class HttpConnector(BaseConnector):
         ret_val, parsed_body = self._process_response(r, action_result)
 
         if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
-            self.debug_print("Response for {0} : {1}".format(self.get_action_identifier(), r.text))
             return ret_val, r
 
         resp_data = {
@@ -444,7 +455,8 @@ class HttpConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(e)
             return RetVal(action_result.set_status(
                 phantom.APP_ERROR,
-                'Failed to parse headers as JSON object. error: {}, headers: {}'.format(error_message, self._handle_py_ver_compat_for_input_str(headers))
+                'Failed to parse headers as JSON object. error: {}, headers: {}'.format(
+                    error_message, self._handle_py_ver_compat_for_input_str(headers))
             ))
 
         return RetVal(phantom.APP_SUCCESS, headers)
@@ -472,7 +484,8 @@ class HttpConnector(BaseConnector):
         # Querying endpoint to generate token
         response = requests.post(self._oauth_token_url, auth=(self._client_id, self._client_secret), data=payload)
         if response.status_code != 200:
-            return action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(self._oauth_token_url, response.status_code))
+            return action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(
+                self._oauth_token_url, response.status_code))
 
         try:
             access_token = json.loads(response.text).get("access_token")
@@ -774,8 +787,9 @@ class HttpConnector(BaseConnector):
 
 if __name__ == '__main__':
 
-    import pudb
     import argparse
+
+    import pudb
     pudb.set_trace()
 
     argparser = argparse.ArgumentParser()

@@ -18,32 +18,30 @@
 
 # THIS Connector imports
 
-from phantom.vault import Vault as Vault
-import phantom.rules as ph_rules
-
+import json
 import os
 import re
-import json
+import shutil
+import uuid
 
+import magic
 import phantom.app as phantom
+import phantom.rules as ph_rules
 import requests
 import xmltodict
-import uuid
-import magic
-import shutil
-
 from bs4 import BeautifulSoup, UnicodeDammit
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
+from phantom.vault import Vault as Vault
 
 from http_consts import *
 
 try:
-    from urllib.parse import urlparse, unquote_plus, unquote
+    from urllib.parse import unquote, unquote_plus, urlparse
 except ImportError:
+    from urllib import unquote
     from urllib import unquote_plus
     from urlparse import urlparse
-    from urllib import unquote
 
 import socket
 import sys

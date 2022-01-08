@@ -16,12 +16,8 @@
 
 # Phantom imports
 
-import phantom.app as phantom
-
 # THIS Connector imports
 
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
 from phantom.vault import Vault as Vault
 import phantom.rules as ph_rules
 
@@ -35,7 +31,6 @@ import xmltodict
 import uuid
 import magic
 import shutil
-import subprocess
 
 from bs4 import BeautifulSoup, UnicodeDammit
 from phantom.action_result import ActionResult
@@ -563,10 +558,6 @@ class HttpConnector(BaseConnector):
         endpoint = hostname + file_path
         # /some/dir/file_name
         file_name = file_path.split('/')[-1]
-        if hasattr(Vault, 'get_vault_tmp_dir'):
-            vault_path = '{}/{}'.format(Vault.get_vault_tmp_dir(), file_name)
-        else:
-            vault_path = '/vault/tmp/{}'.format(file_name)
 
         try:
             ret_val, r = self._make_http_call(
@@ -638,7 +629,8 @@ class HttpConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, HTTP_EXCLUDE_FILENAME_ERR_MSG)
 
         destination_path = "{}{}{}{}{}".format(endpoint,
-                                           '/' if file_dest[-1] != '/' else '', file_dest, '/' if dest_file_name[-1] != '/' else '', dest_file_name)
+                                           '/' if file_dest[-1] != '/' else '', file_dest, '/'
+                                               if dest_file_name[-1] != '/' else '', dest_file_name)
 
         params = {'file_path': file_dest}
         try:
@@ -648,14 +640,13 @@ class HttpConnector(BaseConnector):
                     'file': f
                 }
 
-                response = requests.post(endpoint, files=files, params=params)
+                response = requests.post(endpoint, files=files, params=params, timeout=10)
         except FileNotFoundError as e:
             err = self._get_error_message_from_exception(e)
             err = "{}. {}".format(err, HTTP_FILE_NOT_FOUND_ERR_MSG)
             return action_result.set_status(phantom.APP_ERROR, HTTP_PUT_FILE_ERR_MSG.format(error=err))
         except Exception as e:
-            err = self._get_error_message_from_exception(e)
-            self.debug_print("In exception. Error: {}".format(err))
+            err = "{}. {}".format(self._get_error_message_from_exception(e), response.text)
             return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
 
         summary = {'file_sent': destination_path}

@@ -1257,7 +1257,7 @@
                     "contains": [
                         "file path"
                     ],
-                    "required": false,
+                    "required": true,
                     "primary": true
                 }
             },
@@ -1287,7 +1287,7 @@
                     ]
                 },
                 {
-                    "data_path": "action_result.parameter.hostname",
+                    "data_path": "action_result.parameter.host",
                     "data_type": "string",
                     "contains": [
                         "host name"

@@ -1,5 +1,5 @@
 <!-- File: readme.html
-  Copyright (c) 2016-2021 Splunk Inc.
+  Copyright (c) 2016-2022 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,3 +25,15 @@ For security reasons, accessing 127.0.0.1 is not allowed.
   <li>OAuth (oauth token url, client id and client secret)</li>
   <li>Provided Auth token (auth_token_name, auth_token)</li>
 </ol>
+
+<p><b>put file action</b></p>
+<ul>
+  <li>For the <b>put file</b> action run, we need to start the flask app service on the QA file server to activate the listening port. Steps to run the <b>put file</b> action:</li>
+  <br>
+  <ul>
+  <li>Do the SSH into the QA file server VM with valid credentials</li>
+  <li>Move to flask_app repo</li>
+  <li>Run <b>python cpy.py</b> command to activate the listening port. Make sure service started without any error</li>
+  <li>Go to the Phantom instance and run the action with required parameters. We are using the <b>/web_storage</b> directory instead of <b>/malware_samples</b> due to limited permission to store files on the QA file server</li>
+</ul>
+</ul>

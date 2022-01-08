@@ -12,7 +12,7 @@
     "product_name": "HTTP",
     "product_version_regex": ".*",
     "min_phantom_version": "5.0.0",
-    "license": "Copyright (c) 2016-2021 Splunk Inc.",
+    "license": "Copyright (c) 2016-2022 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
@@ -1098,7 +1098,7 @@
         {
             "action": "get file",
             "description": "Retrieve a file from the endpoint and save it to the vault",
-            "verbose": "The file path needs to be an absolute path. For example, <b>/home/USER/file.tgz</b> instead of <b>~/file.tgz</b>.",
+            "verbose": "Provide the file path and file name to get it downloaded in the Vault. For example, <b>/web_storage/file.tgz</b>.",
             "type": "investigate",
             "identifier": "get_file",
             "read_only": true,
@@ -1116,7 +1116,7 @@
                 "file_path": {
                     "data_type": "string",
                     "order": 1,
-                    "description": "Full path of the file to download (include filename)",
+                    "description": "Path of the file to download (include filename)",
                     "contains": [
                         "file path"
                     ],
@@ -1146,7 +1146,7 @@
                         "file path"
                     ],
                     "example_values": [
-                        "/home/USER/file.tgz"
+                        "/web_storage/file.tgz"
                     ]
                 },
                 {
@@ -1227,13 +1227,13 @@
             "description": "Put a file from the vault to another location",
             "type": "generic",
             "identifier": "put_file",
-            "verbose": "The file path needs to be an absolute path. For example, <b>/home/USER/</b> instead of <b>~/USER</b>.",
+            "verbose": "Provide the path to store the file on QA server. For example, <b>/web_storage/test_repo/</b>.",
             "read_only": false,
             "parameters": {
                 "host": {
                     "data_type": "string",
                     "order": 0,
-                    "description": "Hostname/IP to execute command on",
+                    "description": "Hostname/IP with port number to execute command on",
                     "contains": [
                         "host name"
                     ],
@@ -1283,7 +1283,7 @@
                         "file path"
                     ],
                     "example_values": [
-                        "/home/USER/"
+                        "/web_storage/test_repo/"
                     ]
                 },
                 {
@@ -1293,7 +1293,7 @@
                         "host name"
                     ],
                     "example_values": [
-                        "http://192.168.0.1"
+                        "http://192.168.0.1:8001"
                     ]
                 },
                 {
@@ -1321,7 +1321,7 @@
                         "file path"
                     ],
                     "example_values": [
-                        "/home/USER/file.tgz"
+                        "http://192.168.0.1:8001/web_storage/test_repo/file.tgz"
                     ]
                 },
                 {
@@ -1330,7 +1330,7 @@
                     "column_order": 2,
                     "column_name": "Result Message",
                     "example_values": [
-                        "File sent: /home/USER/file.tgz"
+                        "File sent: http://192.168.0.1:8001/web_storage/test_repo/file.tgz"
                     ]
                 },
                 {

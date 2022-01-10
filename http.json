@@ -1227,7 +1227,7 @@
             "description": "Put a file from the vault to another location",
             "type": "generic",
             "identifier": "put_file",
-            "verbose": "Provide the path to store the file on QA server. For example, <b>/web_storage/test_repo/</b>.",
+            "verbose": "Provide the path to store the file on the file server. For example, <b>/web_storage/test_repo/</b>.",
             "read_only": false,
             "parameters": {
                 "host": {

@@ -1098,7 +1098,7 @@
         {
             "action": "get file",
             "description": "Retrieve a file from the endpoint and save it to the vault",
-            "verbose": "Provide the file path and file name to get it downloaded in the Vault. For example, <b>/web_storage/file.tgz</b>.",
+            "verbose": "Provide the file path and file name to download into the vault. For example, <b>/web_storage/file.tgz</b>.",
             "type": "investigate",
             "identifier": "get_file",
             "read_only": true,

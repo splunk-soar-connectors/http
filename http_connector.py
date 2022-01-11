@@ -584,6 +584,8 @@ class HttpConnector(BaseConnector):
         # fetching phantom vault details
         try:
             success, message, vault_meta_info = ph_rules.vault_info(vault_id=param[HTTP_JSON_VAULT_ID])
+            if not vault_meta_info:
+                return action_result.set_status(phantom.APP_ERROR, HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG)
             vault_meta_info = list(vault_meta_info)
             if not success or not vault_meta_info:
                 error_msg = " Error Details: {}".format(unquote(message)) if message else ''
@@ -604,14 +606,9 @@ class HttpConnector(BaseConnector):
         file_dest = param[HTTP_JSON_FILE_DEST]
         endpoint = param[HTTP_JSON_HOST]
 
-        if file_dest.startswith('/'):
-            file_dest = file_dest[1:]
+        file_dest = file_dest.strip('/')
 
-        if file_dest.endswith('/'):
-            file_dest = file_dest[:-1]
-
-        if endpoint.endswith('/'):
-            endpoint = endpoint[:-1]
+        endpoint = endpoint.rstrip('/')
 
         worker_dir = self.get_state_dir()
         file_path = '{}/{}'.format(worker_dir, dest_file_name)

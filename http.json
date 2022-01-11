@@ -77,6 +77,12 @@
             "data_type": "numeric",
             "order": 10,
             "description": "Timeout for HTTP calls"
+        },
+        "test_http_method": {
+            "data_type": "string",
+            "order": 11,
+            "description": "HTTP Method for Test Connectivity.",
+            "default": "GET"
         }
     },
     "actions": [

@@ -149,6 +149,11 @@ class HttpConnector(BaseConnector):
 
         self._username = config.get('username')
         self._password = config.get('password', '')
+        self._test_http_method = config.get('test_http_method', 'get').lower()
+
+        http_methods = ('get', 'head', 'post', 'put', 'delete', 'options', 'trace', 'patch')
+        if self._test_http_method not in http_methods:
+            return self.set_status(phantom.APP_ERROR, "Given HTTP method is invalid: {0}".format(self._test_http_method))
 
         self._oauth_token_url = config.get('oauth_token_url')
         if self._oauth_token_url:
@@ -468,10 +473,10 @@ class HttpConnector(BaseConnector):
 
         if test_path:
             self.save_progress("Querying base url, {0}{1}, to test credentials".format(self._base_url, self._test_path))
-            ret_val = self._make_http_call(action_result, test_path)
+            ret_val = self._make_http_call(action_result, test_path, method=self._test_http_method)
         else:
             self.save_progress("Querying base url, {0}, to test credentials".format(self._base_url))
-            ret_val = self._make_http_call(action_result)
+            ret_val = self._make_http_call(action_result, method=self._test_http_method)
 
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed")

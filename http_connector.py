@@ -13,21 +13,33 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 #
-#
-import json
 
+# Phantom imports
+
+# THIS Connector imports
+
+import json
+import os
+import re
+import shutil
+import uuid
+
+import magic
 import phantom.app as phantom
+import phantom.rules as ph_rules
 import requests
 import xmltodict
 from bs4 import BeautifulSoup, UnicodeDammit
 from phantom.action_result import ActionResult
 from phantom.base_connector import BaseConnector
+from phantom.vault import Vault as Vault
 
 from http_consts import *
 
 try:
-    from urllib.parse import unquote_plus, urlparse
+    from urllib.parse import unquote, unquote_plus, urlparse
 except ImportError:
+    from urllib import unquote
     from urllib import unquote_plus
     from urlparse import urlparse
 
@@ -41,6 +53,15 @@ class RetVal(tuple):
 
 
 class HttpConnector(BaseConnector):
+
+    MAGIC_FORMATS = [
+        (re.compile('^PE.* Windows'), ['pe file'], '.exe'),
+        (re.compile('^MS-DOS executable'), ['pe file'], '.exe'),
+        (re.compile('^PDF '), ['pdf'], '.pdf'),
+        (re.compile('^MDMP crash'), ['process dump'], '.dmp'),
+        (re.compile('^Macromedia Flash'), ['flash'], '.flv'),
+        (re.compile('^tcpdump capture'), ['pcap'], '.pcap'),
+    ]
 
     def __init__(self):
 
@@ -315,7 +336,7 @@ class HttpConnector(BaseConnector):
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), r.text)
 
-    def _make_http_call(self, action_result, endpoint='', method='get', headers=None, verify=False, data=None):
+    def _make_http_call(self, action_result, endpoint='', method='get', headers=None, verify=False, data=None, files=None):
 
         auth = None
         headers = {} if not headers else headers
@@ -340,7 +361,11 @@ class HttpConnector(BaseConnector):
         except AttributeError:
             return action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method))
 
-        url = self._base_url + endpoint
+        if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
+            url = endpoint
+            auth = None
+        else:
+            url = self._base_url + endpoint
 
         try:
             r = request_func(
@@ -349,6 +374,7 @@ class HttpConnector(BaseConnector):
                     data=UnicodeDammit(data).unicode_markup.encode('utf-8') if isinstance(data, str) else data,
                     verify=verify,
                     headers=headers,
+                    files=files,
                     timeout=self._timeout)
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
@@ -377,11 +403,16 @@ class HttpConnector(BaseConnector):
             return action_result.set_status(phantom.APP_SUCCESS)
 
         ret_val, parsed_body = self._process_response(r, action_result)
+
+        if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
+            return ret_val, r
+
         resp_data = {
             'method': method.upper(),
             'location': url, 'parsed_response_body': parsed_body,
-            'response_body': r.text if 'json' not in r.headers.get('Content-Type', '') and 'javascript' not in
-            r.headers.get('Content-Type', '') else parsed_body
+            'response_body': r.text if 'json' not in r.headers.get('Content-Type',
+                                                                   '') and 'javascript' not in r.headers.get(
+                'Content-Type', '') else parsed_body
         }
         try:
             resp_data['response_headers'] = dict(r.headers)
@@ -514,6 +545,168 @@ class HttpConnector(BaseConnector):
             data=body
         )
 
+    def _handle_get_file(self, param, method):
+
+        action_result = ActionResult(dict(param))
+        self.add_action_result(action_result)
+
+        hostname = param[HTTP_JSON_HOSTNAME]
+        file_path = param[HTTP_JSON_FILE_PATH]
+
+        endpoint = hostname + file_path
+        # /some/dir/file_name
+        file_name = file_path.split('/')[-1]
+
+        try:
+            ret_val, r = self._make_http_call(
+                action_result,
+                endpoint=endpoint,
+                method=method,
+                verify=param.get('verify_certificate', False)
+            )
+        except Exception as e:
+            err = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
+
+        if (phantom.is_fail(ret_val)):
+            return action_result.get_status()
+
+        if (r.status_code == 200):
+            return self._save_file_to_vault(action_result, r, file_name)
+        else:
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=r.status_code))
+
+    def _handle_put_file(self, param, method):
+
+        action_result = ActionResult(dict(param))
+        self.add_action_result(action_result)
+
+        # fetching phantom vault details
+        try:
+            success, message, vault_meta_info = ph_rules.vault_info(vault_id=param[HTTP_JSON_VAULT_ID])
+            if not success or not vault_meta_info:
+                error_msg = " Error Details: {}".format(unquote(message)) if message else ''
+                return action_result.set_status(phantom.APP_ERROR,
+                                                "{}.{}".format(HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG, error_msg))
+            vault_meta_info = list(vault_meta_info)
+        except Exception as e:
+            err = self._get_error_message_from_exception(e)
+            return action_result.set_status(phantom.APP_ERROR,
+                                            "{}. {}".format(HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG, err))
+
+        # phantom vault file path
+        vault_path = vault_meta_info[0].get('path')
+        with open(vault_path, 'rb') as f:
+            content = f.read()
+
+        # phantom vault file name
+        dest_file_name = vault_meta_info[0].get('name')
+        file_dest = param[HTTP_JSON_FILE_DEST]
+        endpoint = param[HTTP_JSON_HOST]
+
+        file_dest = file_dest.strip('/')
+
+        endpoint = endpoint.rstrip('/')
+
+        worker_dir = self.get_state_dir()
+        file_path = '{}/{}'.format(worker_dir, dest_file_name)
+
+        try:
+            with open(file_path, 'wb') as fout:
+                fout.write(content)
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR, self._get_error_message_from_exception(e))
+
+        # Returning an error if the filename is included in the file_destination path
+        if dest_file_name in file_dest:
+            return action_result.set_status(phantom.APP_ERROR, HTTP_EXCLUDE_FILENAME_ERR_MSG)
+
+        destination_path = "{}{}{}{}{}".format(endpoint,
+                                           '/' if file_dest[-1] != '/' else '', file_dest, '/'
+                                               if dest_file_name[-1] != '/' else '', dest_file_name)
+
+        params = {'file_path': file_dest}
+        try:
+            with open(file_path, 'rb') as f:
+                # Set file to be uploaded
+                files = {
+                    'file': f
+                }
+
+                response = requests.post(endpoint, files=files, params=params, timeout=10)
+        except FileNotFoundError as e:
+            err = self._get_error_message_from_exception(e)
+            err = "{}. {}".format(err, HTTP_FILE_NOT_FOUND_ERR_MSG)
+            return action_result.set_status(phantom.APP_ERROR, HTTP_PUT_FILE_ERR_MSG.format(error=err))
+        except Exception as e:
+            err = "{}. {}".format(self._get_error_message_from_exception(e), response.text)
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
+
+        summary = {'file_sent': destination_path}
+        action_result.update_summary(summary)
+        return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _save_file_to_vault(self, action_result, response, file_name):
+
+        # Create a tmp directory on the vault partition
+
+        guid = uuid.uuid4()
+
+        if hasattr(Vault, 'get_vault_tmp_dir'):
+            temp_dir = Vault.get_vault_tmp_dir()
+        else:
+            temp_dir = '/vault/tmp'
+
+        local_dir = temp_dir + '/{}'.format(guid)
+        self.save_progress("Using temp directory: {0}".format(guid))
+
+        try:
+            os.makedirs(local_dir)
+        except Exception as e:
+            return action_result.set_status(phantom.APP_ERROR,
+                                            "Unable to create temporary folder {0}.".format(temp_dir), e)
+
+        file_path = "{0}/{1}".format(local_dir, file_name)
+
+        # open and download the file
+        with open(file_path, 'wb') as f:
+            f.write(response.content)
+
+        contains = []
+        file_ext = ''
+        magic_str = magic.from_file(file_path)
+        for regex, cur_contains, extension in self.MAGIC_FORMATS:
+            if regex.match(magic_str):
+                contains.extend(cur_contains)
+                if (not file_ext):
+                    file_ext = extension
+
+        file_name = '{}{}'.format(file_name, file_ext)
+
+        # move the file to the vault
+        status, vault_ret_message, vault_id = ph_rules.vault_add(file_location=file_path,
+                                                                 container=self.get_container_id(), file_name=file_name,
+                                                                 metadata={'contains': contains})
+
+        curr_data = {}
+
+        if status:
+            curr_data[phantom.APP_JSON_VAULT_ID] = vault_id
+            curr_data[phantom.APP_JSON_NAME] = file_name
+            if (contains):
+                curr_data['file_type'] = ','.join(contains)
+            action_result.add_data(curr_data)
+            action_result.update_summary(curr_data)
+            action_result.set_status(phantom.APP_SUCCESS, "File successfully retrieved and added to vault")
+        else:
+            action_result.set_status(phantom.APP_ERROR, phantom.APP_ERR_FILE_ADD_TO_VAULT)
+            action_result.append_to_message(vault_ret_message)
+
+        # remove the /tmp/<> temporary directory
+        shutil.rmtree(local_dir)
+
+        return action_result.get_status()
+
     def _handle_get(self, param):
         return self._verb(param, 'get')
 
@@ -566,6 +759,12 @@ class HttpConnector(BaseConnector):
 
         elif action_id == 'http_options':
             ret_val = self._handle_options(param)
+
+        elif action_id == 'get_file':
+            ret_val = self._handle_get_file(param, 'get')
+
+        elif action_id == 'put_file':
+            ret_val = self._handle_put_file(param, 'post')
 
         return ret_val
 

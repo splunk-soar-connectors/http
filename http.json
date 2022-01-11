@@ -6,8 +6,8 @@
     "publisher": "Splunk",
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.2.8",
-    "utctime_updated": "2022-01-08T02:46:44.000000Z",
+    "app_version": "3.3.0",
+    "utctime_updated": "2021-10-19T02:55:38.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
@@ -1094,9 +1094,264 @@
                 }
             ],
             "versions": "EQ(*)"
+        },
+        {
+            "action": "get file",
+            "description": "Retrieve a file from the endpoint and save it to the vault",
+            "verbose": "Provide the file path and file name to download into the vault. For example, <b>/web_storage/file.tgz</b>.",
+            "type": "investigate",
+            "identifier": "get_file",
+            "read_only": true,
+            "parameters": {
+                "hostname": {
+                    "data_type": "string",
+                    "order": 0,
+                    "description": "Hostname to execute command on",
+                    "contains": [
+                        "host name"
+                    ],
+                    "required": true,
+                    "primary": true
+                },
+                "file_path": {
+                    "data_type": "string",
+                    "order": 1,
+                    "description": "Path of the file to download (include filename)",
+                    "contains": [
+                        "file path"
+                    ],
+                    "required": true,
+                    "primary": true
+                }
+            },
+            "render": {
+                "width": 12,
+                "title": "Get File",
+                "type": "table",
+                "height": 5
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.file_path",
+                    "data_type": "string",
+                    "contains": [
+                        "file path"
+                    ],
+                    "example_values": [
+                        "/web_storage/file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.hostname",
+                    "data_type": "string",
+                    "contains": [
+                        "host name"
+                    ],
+                    "example_values": [
+                        "http://192.168.0.1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary.exit_status",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.name",
+                    "data_type": "string",
+                    "example_values": [
+                        "file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.size",
+                    "data_type": "numeric",
+                    "example_values": [
+                        412
+                    ]
+                },
+                {
+                    "data_path": "action_result.summary.vault_id",
+                    "data_type": "string",
+                    "contains": [
+                        "vault id"
+                    ],
+                    "column_order": 1,
+                    "column_name": "Vault ID",
+                    "example_values": [
+                        "dc871f816c4d179f3a3cea24b4bc81a67562c"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "column_order": 0,
+                    "column_name": "Result Message",
+                    "example_values": [
+                        "Transferred file"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "put file",
+            "description": "Put a file from the vault to another location",
+            "type": "generic",
+            "identifier": "put_file",
+            "verbose": "Provide the path to store the file on the file server. For example, <b>/web_storage/test_repo/</b>.",
+            "read_only": false,
+            "parameters": {
+                "host": {
+                    "data_type": "string",
+                    "order": 0,
+                    "description": "Hostname/IP with port number to execute command on",
+                    "contains": [
+                        "host name"
+                    ],
+                    "required": true,
+                    "primary": true
+                },
+                "vault_id": {
+                    "data_type": "string",
+                    "order": 1,
+                    "contains": [
+                        "vault id"
+                    ],
+                    "description": "Vault ID of file",
+                    "required": true,
+                    "primary": true
+                },
+                "file_destination": {
+                    "description": "File destination path (exclude filename)",
+                    "data_type": "string",
+                    "order": 2,
+                    "contains": [
+                        "file path"
+                    ],
+                    "required": true,
+                    "primary": true
+                }
+            },
+            "render": {
+                "width": 12,
+                "title": "Put File",
+                "type": "table",
+                "height": 5
+            },
+            "output": [
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": [
+                        "success",
+                        "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.file_destination",
+                    "data_type": "string",
+                    "contains": [
+                        "file path"
+                    ],
+                    "example_values": [
+                        "/web_storage/test_repo/"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.host",
+                    "data_type": "string",
+                    "contains": [
+                        "host name"
+                    ],
+                    "example_values": [
+                        "http://192.168.0.1:8001"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.vault_id",
+                    "data_type": "string",
+                    "contains": [
+                        "vault id"
+                    ],
+                    "column_order": 0,
+                    "column_name": "Vault ID",
+                    "example_values": [
+                        "dc871f816c4d179f3a3cea24b4bc81a67562c"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data",
+                    "data_type": "string"
+                },
+                {
+                    "data_path": "action_result.summary.file_sent",
+                    "data_type": "string",
+                    "column_order": 1,
+                    "column_name": "File Transferred",
+                    "contains": [
+                        "file path"
+                    ],
+                    "example_values": [
+                        "http://192.168.0.1:8001/web_storage/test_repo/file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "column_order": 2,
+                    "column_name": "Result Message",
+                    "example_values": [
+                        "File sent: http://192.168.0.1:8001/web_storage/test_repo/file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                },
+                {
+                    "data_path": "summary.total_objects_successful",
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
+                }
+            ],
+            "versions": "EQ(*)"
         }
     ],
-    "pip_dependencies": {
+     "pip_dependencies": {
         "wheel": [
             {
                 "module": "beautifulsoup4",

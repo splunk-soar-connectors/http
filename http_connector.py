@@ -584,13 +584,11 @@ class HttpConnector(BaseConnector):
         # fetching phantom vault details
         try:
             success, message, vault_meta_info = ph_rules.vault_info(vault_id=param[HTTP_JSON_VAULT_ID])
-            if not vault_meta_info:
-                return action_result.set_status(phantom.APP_ERROR, HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG)
-            vault_meta_info = list(vault_meta_info)
             if not success or not vault_meta_info:
                 error_msg = " Error Details: {}".format(unquote(message)) if message else ''
                 return action_result.set_status(phantom.APP_ERROR,
                                                 "{}.{}".format(HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG, error_msg))
+            vault_meta_info = list(vault_meta_info)
         except Exception as e:
             err = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR,

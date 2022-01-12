@@ -6,7 +6,7 @@
     "publisher": "Splunk",
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.3.2",
+    "app_version": "3.4.0",
     "utctime_updated": "2022-01-11T21:19:27.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
@@ -18,7 +18,7 @@
     "python_version": "3",
     "fips_compliant": true,
     "latest_tested_versions": [
-        "Tested with Splunk Trustar on 12th Oct 2021"
+        "Tested with Splunk Trustar on 18th January 2022"
     ],
     "configuration": {
         "base_url": {
@@ -77,6 +77,12 @@
             "data_type": "numeric",
             "order": 10,
             "description": "Timeout for HTTP calls"
+        },
+        "test_http_method": {
+            "data_type": "string",
+            "order": 11,
+            "description": "HTTP Method for Test Connectivity.",
+            "default": "GET"
         }
     },
     "actions": [

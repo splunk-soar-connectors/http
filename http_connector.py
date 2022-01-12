@@ -170,6 +170,11 @@ class HttpConnector(BaseConnector):
 
         self._username = config.get('username')
         self._password = config.get('password', '')
+        self._test_http_method = config.get('test_http_method', 'get').lower()
+
+        http_methods = ('get', 'head', 'post', 'put', 'delete', 'options', 'trace', 'patch')
+        if self._test_http_method not in http_methods:
+            return self.set_status(phantom.APP_ERROR, "Given HTTP method is invalid: {0}".format(self._test_http_method))
 
         self._oauth_token_url = config.get('oauth_token_url')
         if self._oauth_token_url:
@@ -475,7 +480,8 @@ class HttpConnector(BaseConnector):
 
         self.save_progress("Fetching new token")
         # Querying endpoint to generate token
-        response = requests.post(self._oauth_token_url, auth=(self._client_id, self._client_secret), data=payload)
+        response = requests.post(    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+            self._oauth_token_url, auth=(self._client_id, self._client_secret), data=payload)
         if response.status_code != 200:
             return action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(
                 self._oauth_token_url, response.status_code))
@@ -499,10 +505,10 @@ class HttpConnector(BaseConnector):
 
         if test_path:
             self.save_progress("Querying base url, {0}{1}, to test credentials".format(self._base_url, self._test_path))
-            ret_val = self._make_http_call(action_result, test_path)
+            ret_val = self._make_http_call(action_result, test_path, method=self._test_http_method)
         else:
             self.save_progress("Querying base url, {0}, to test credentials".format(self._base_url))
-            ret_val = self._make_http_call(action_result)
+            ret_val = self._make_http_call(action_result, method=self._test_http_method)
 
         if phantom.is_fail(ret_val):
             self.save_progress("Test Connectivity Failed")
@@ -781,30 +787,33 @@ if __name__ == '__main__':
     argparser.add_argument('input_test_json', help='Input Test JSON file')
     argparser.add_argument('-u', '--username', help='username', required=False)
     argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
     args = argparser.parse_args()
+    verify = args.verify
     session_id = None
 
     if args.username and args.password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=False)
+            r = requests.get(login_url, verify=verify)    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
             csrftoken = r.cookies['csrftoken']
             data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
             headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(login_url, verify=False, data=data, headers=headers)
+            r2 = requests.post(    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+                login_url, verify=verify, data=data, headers=headers)
             session_id = r2.cookies['sessionid']
 
         except Exception as e:
             print("Unable to get session id from the platform. Error: {0}".format(str(e)))
-            exit(1)
+            sys.exit(1)
 
     if len(sys.argv) < 2:
         print("No test json specified as input")
-        exit(0)
+        sys.exit(0)
 
     with open(sys.argv[1]) as f:
         in_json = f.read()
@@ -820,4 +829,4 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
         print(json.dumps(json.loads(ret_val), indent=4))
 
-    exit(0)
+    sys.exit(0)

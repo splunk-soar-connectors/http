@@ -172,10 +172,6 @@ class HttpConnector(BaseConnector):
         self._password = config.get('password', '')
         self._test_http_method = config.get('test_http_method', 'get').lower()
 
-        http_methods = ('get', 'head', 'post', 'put', 'delete', 'options', 'trace', 'patch')
-        if self._test_http_method not in http_methods:
-            return self.set_status(phantom.APP_ERROR, "Given HTTP method is invalid: {0}".format(self._test_http_method))
-
         self._oauth_token_url = config.get('oauth_token_url')
         if self._oauth_token_url:
             self._oauth_token_url = self._oauth_token_url.strip('/')

@@ -18,7 +18,7 @@
     "python_version": "3",
     "fips_compliant": true,
     "latest_tested_versions": [
-        "Tested with Splunk Trustar on 18th January 2022"
+        "Tested with Splunk Trustar on 29th January 2022"
     ],
     "configuration": {
         "base_url": {
@@ -82,7 +82,18 @@
             "data_type": "string",
             "order": 11,
             "description": "HTTP Method for Test Connectivity.",
-            "default": "GET"
+            "default": "GET",
+            "value_list": [
+                "GET",
+                "HEAD",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS",
+                "TRACE",
+                "PATCH",
+                "CONNECT"
+            ]
         }
     },
     "actions": [

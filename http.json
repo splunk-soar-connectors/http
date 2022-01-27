@@ -91,8 +91,7 @@
                 "DELETE",
                 "OPTIONS",
                 "TRACE",
-                "PATCH",
-                "CONNECT"
+                "PATCH"
             ]
         }
     },

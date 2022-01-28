@@ -250,15 +250,16 @@ class HttpConnector(BaseConnector):
             self.debug_print("Exception: {}".format(ex))
             error_text = "Cannot parse error details"
 
+        response_data = error_text
         if 200 <= response.status_code < 400:
-            return RetVal(phantom.APP_SUCCESS, soup.text)
+            return RetVal(phantom.APP_SUCCESS, response_data)
 
         error_text = self._handle_py_ver_compat_for_input_str(error_text)
         message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, unquote_plus(error_text))
 
         message = message.replace('{', '{{').replace('}', '}}')
 
-        return RetVal(action_result.set_status(phantom.APP_ERROR, message), soup.text)
+        return RetVal(action_result.set_status(phantom.APP_ERROR, message), response_data)
 
     def _process_json_response(self, response, action_result):
 

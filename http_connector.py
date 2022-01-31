@@ -383,7 +383,7 @@ class HttpConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(error_message))
 
         # fetch new token if old one has expired
-        if (r.status_code == 401) and self.access_token_retry:
+        if r.status_code == 401 and self.access_token_retry:
             self.save_progress("Got error: {}".format(r.status_code))
             self._state.pop('access_token')
             self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
@@ -571,10 +571,10 @@ class HttpConnector(BaseConnector):
             err = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
 
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        if (r.status_code == 200):
+        if r.status_code == 200:
             return self._save_file_to_vault(action_result, r, file_name)
         else:
             return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=r.status_code))
@@ -681,7 +681,7 @@ class HttpConnector(BaseConnector):
         for regex, cur_contains, extension in self.MAGIC_FORMATS:
             if regex.match(magic_str):
                 contains.extend(cur_contains)
-                if (not file_ext):
+                if not file_ext:
                     file_ext = extension
 
         file_name = '{}{}'.format(file_name, file_ext)
@@ -696,7 +696,7 @@ class HttpConnector(BaseConnector):
         if status:
             curr_data[phantom.APP_JSON_VAULT_ID] = vault_id
             curr_data[phantom.APP_JSON_NAME] = file_name
-            if (contains):
+            if contains:
                 curr_data['file_type'] = ','.join(contains)
             action_result.add_data(curr_data)
             action_result.update_summary(curr_data)

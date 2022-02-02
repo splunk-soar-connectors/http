@@ -477,8 +477,13 @@ class HttpConnector(BaseConnector):
 
         self.save_progress("Fetching new token")
         # Querying endpoint to generate token
+<<<<<<< HEAD
         response = requests.post(    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
             self._oauth_token_url, auth=(self._client_id, self._client_secret), data=payload)
+=======
+        response = requests.post(self._oauth_token_url, auth=(self._client_id, self._client_secret),
+                                 data=payload, timeout=DEFAULT_REQUEST_TIMEOUT)
+>>>>>>> 785d64e517fe7250cee1ee7ae42fe1dd8efa58b5
         if response.status_code != 200:
             return action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(
                 self._oauth_token_url, response.status_code))
@@ -789,19 +794,19 @@ if __name__ == '__main__':
     args = argparser.parse_args()
     verify = args.verify
     session_id = None
+    verify = args.verify
 
     if args.username and args.password:
         login_url = BaseConnector._get_phantom_base_url() + "login"
         try:
             print("Accessing the Login page")
-            r = requests.get(login_url, verify=verify)    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
+            r = requests.get(login_url, verify=verify, timeout=DEFAULT_REQUEST_TIMEOUT)
             csrftoken = r.cookies['csrftoken']
             data = {'username': args.username, 'password': args.password, 'csrfmiddlewaretoken': csrftoken}
             headers = {'Cookie': 'csrftoken={0}'.format(csrftoken), 'Referer': login_url}
 
             print("Logging into Platform to get the session id")
-            r2 = requests.post(    # nosemgrep: python.requests.best-practice.use-timeout.use-timeout
-                login_url, verify=verify, data=data, headers=headers)
+            r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=DEFAULT_REQUEST_TIMEOUT)
             session_id = r2.cookies['sessionid']
 
         except Exception as e:

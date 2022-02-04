@@ -2,11 +2,11 @@
 # HTTP
 
 Publisher: Splunk  
-Connector Version: 3\.3\.2  
+Connector Version: 3\.4\.1  
 Product Vendor: Generic  
 Product Name: HTTP  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.0\.0  
+Minimum Product Version: 5\.1\.0  
 
 This App facilitates making HTTP requests as actions
 
@@ -52,6 +52,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **client\_id** |  optional  | string | Client ID \(for OAuth\)
 **client\_secret** |  optional  | password | Client Secret \(for OAuth\)
 **timeout** |  optional  | numeric | Timeout for HTTP calls
+**test\_http\_method** |  optional  | string | HTTP Method for Test Connectivity
 
 ### Supported Actions  
 [test connectivity](#action-test-connectivity) - Validate connection using the configured credentials  

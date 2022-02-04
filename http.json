@@ -6,19 +6,19 @@
     "publisher": "Splunk",
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.3.2",
-    "utctime_updated": "2022-01-11T21:19:27.000000Z",
+    "app_version": "3.4.1",
+    "utctime_updated": "2022-02-02T11:40:43.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "5.0.0",
+    "min_phantom_version": "5.1.0",
     "license": "Copyright (c) 2016-2022 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
     "fips_compliant": true,
     "latest_tested_versions": [
-        "Tested with Splunk Trustar on 12th Oct 2021"
+        "Tested with Splunk Trustar on 29th January 2022"
     ],
     "configuration": {
         "base_url": {
@@ -77,6 +77,22 @@
             "data_type": "numeric",
             "order": 10,
             "description": "Timeout for HTTP calls"
+        },
+        "test_http_method": {
+            "data_type": "string",
+            "order": 11,
+            "description": "HTTP Method for Test Connectivity",
+            "default": "GET",
+            "value_list": [
+                "GET",
+                "HEAD",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS",
+                "TRACE",
+                "PATCH"
+            ]
         }
     },
     "actions": [

@@ -30,7 +30,7 @@
         "test_path": {
             "data_type": "string",
             "order": 1,
-            "description": "Base URL endpoint for test connectivity. (e.g. /some/specific/endpoint)"
+            "description": "Endpoint for test connectivity. (e.g. /some/specific/endpoint , appended to Base URL)"
         },
         "auth_token_name": {
             "data_type": "string",

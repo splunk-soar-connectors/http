@@ -6,7 +6,7 @@
     "publisher": "Splunk",
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.4.1",
+    "app_version": "3.5.0",
     "utctime_updated": "2022-02-02T11:40:43.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",

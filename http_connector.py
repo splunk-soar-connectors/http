@@ -710,25 +710,25 @@ class HttpConnector(BaseConnector):
 
         return action_result.get_status()
 
-    def _handle_get(self, param):
+    def _handle_http_get(self, param):
         return self._verb(param, 'get')
 
-    def _handle_post(self, param):
+    def _handle_http_post(self, param):
         return self._verb(param, 'post')
 
-    def _handle_patch(self, param):
+    def _handle_http_patch(self, param):
         return self._verb(param, 'patch')
 
-    def _handle_put(self, param):
+    def _handle_http_put(self, param):
         return self._verb(param, 'put')
 
-    def _handle_delete(self, param):
+    def _handle_http_delete(self, param):
         return self._verb(param, 'delete')
 
-    def _handle_head(self, param):
+    def _handle_http_head(self, param):
         return self._verb(param, 'head')
 
-    def _handle_options(self, param):
+    def _handle_http_options(self, param):
         return self._verb(param, 'options')
 
     def handle_action(self, param):
@@ -743,25 +743,25 @@ class HttpConnector(BaseConnector):
             ret_val = self._handle_test_connectivity(param)
 
         elif action_id == 'http_get':
-            ret_val = self._handle_get(param)
+            ret_val = self._handle_http_get(param)
 
         elif action_id == 'http_post':
-            ret_val = self._handle_post(param)
+            ret_val = self._handle_http_post(param)
 
         elif action_id == 'http_put':
-            ret_val = self._handle_put(param)
+            ret_val = self._handle_http_put(param)
 
         elif action_id == 'http_patch':
-            ret_val = self._handle_patch(param)
+            ret_val = self._handle_http_patch(param)
 
         elif action_id == 'http_delete':
-            ret_val = self._handle_delete(param)
+            ret_val = self._handle_http_delete(param)
 
         elif action_id == 'http_head':
-            ret_val = self._handle_head(param)
+            ret_val = self._handle_http_head(param)
 
         elif action_id == 'http_options':
-            ret_val = self._handle_options(param)
+            ret_val = self._handle_http_options(param)
 
         elif action_id == 'get_file':
             ret_val = self._handle_get_file(param, 'get')

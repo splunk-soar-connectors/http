@@ -1,2 +1,2 @@
 **Unreleased**
-Updated App documentation [PAPP-24696]
+* Updated App documentation [PAPP-24696]

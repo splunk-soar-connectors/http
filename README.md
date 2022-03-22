@@ -2,7 +2,7 @@
 # HTTP
 
 Publisher: Splunk  
-Connector Version: 3\.4\.1  
+Connector Version: 3\.5\.0  
 Product Vendor: Generic  
 Product Name: HTTP  
 Product Version Supported (regex): "\.\*"  
@@ -42,7 +42,7 @@ The below configuration variables are required for this Connector to operate.  T
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
 **base\_url** |  required  | string | Base URL for making queries\. \(e\.g\. https\://myservice/\)
-**test\_path** |  optional  | string | Base URL endpoint for test connectivity\. \(e\.g\. /some/specific/endpoint\)
+**test\_path** |  optional  | string | Endpoint for test connectivity\. \(e\.g\. /some/specific/endpoint , appended to Base URL\)
 **auth\_token\_name** |  optional  | string | Type of authentication token
 **auth\_token** |  optional  | password | Value of authentication token
 **username** |  optional  | string | Username \(for HTTP basic auth\)

@@ -133,7 +133,9 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2
+                    "order": 2,
+                    "required": false,
+                    "default": false
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -283,7 +285,8 @@
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
                     "order": 2,
-                    "required": true
+                    "required": false,
+                    "default": false
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -433,7 +436,8 @@
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
                     "order": 2,
-                    "required": true
+                    "required": false,
+                    "default": false
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -578,7 +582,8 @@
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
                     "order": 1,
-                    "required": true
+                    "required": false,
+                    "default": false
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -702,7 +707,8 @@
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
                     "order": 1,
-                    "required": true
+                    "required": false,
+                    "default": false
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -837,7 +843,8 @@
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
                     "order": 1,
-                    "required": true
+                    "required": false,
+                    "default": false
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -984,7 +991,8 @@
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
                     "order": 2,
-                    "required": true
+                    "required": false,
+                    "default": false
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -1126,7 +1134,8 @@
                     "contains": [
                         "host name"
                     ],
-                    "required": true,
+                    "required": false,
+                    "default": "",
                     "primary": true
                 },
                 "file_path": {
@@ -1138,6 +1147,13 @@
                     ],
                     "required": true,
                     "primary": true
+                },
+                "verify_certificate": {
+                    "description": "Verify certificates (if using HTTPS)",
+                    "data_type": "boolean",
+                    "order": 2,
+                    "required": false,
+                    "default": false
                 }
             },
             "render": {
@@ -1253,7 +1269,8 @@
                     "contains": [
                         "host name"
                     ],
-                    "required": true,
+                    "required": false,
+                    "default": "",
                     "primary": true
                 },
                 "vault_id": {
@@ -1275,6 +1292,13 @@
                     ],
                     "required": true,
                     "primary": true
+                },
+                "verify_certificate": {
+                    "description": "Verify certificates (if using HTTPS)",
+                    "data_type": "boolean",
+                    "order": 3,
+                    "required": false,
+                    "default": false
                 }
             },
             "render": {

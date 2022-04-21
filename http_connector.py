@@ -338,7 +338,8 @@ class HttpConnector(BaseConnector):
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), r.text)
 
-    def _make_http_call(self, action_result, endpoint='', method='get', headers=None, verify=False, data=None, files=None):
+    def _make_http_call(self, action_result, endpoint='', method='get', headers=None,
+                        verify=False, data=None, files=None, use_default_endpoint=False):
 
         auth = None
         headers = {} if not headers else headers
@@ -365,7 +366,8 @@ class HttpConnector(BaseConnector):
 
         if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
             url = endpoint
-            auth = None
+            if not use_default_endpoint:
+                auth = None
         else:
             url = self._base_url + endpoint
 
@@ -378,6 +380,7 @@ class HttpConnector(BaseConnector):
                     headers=headers,
                     files=files,
                     timeout=self._timeout)
+            self.save_progress(f"Got response: {r.status_code}")
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(error_message))
@@ -495,8 +498,7 @@ class HttpConnector(BaseConnector):
         return access_token
 
     def _handle_test_connectivity(self, param):
-
-        self.save_progress("In action handler for: {0}".format(self.get_action_identifier()))
+        self.save_progress(f"In action handler for: {self.get_action_identifier()}")
         action_result = self.add_action_result(ActionResult(dict(param)))
         test_path = self._test_path
 
@@ -553,8 +555,14 @@ class HttpConnector(BaseConnector):
         action_result = ActionResult(dict(param))
         self.add_action_result(action_result)
 
-        hostname = param[HTTP_JSON_HOSTNAME]
         file_path = param[HTTP_JSON_FILE_PATH]
+        hostname = param.get(HTTP_JSON_HOSTNAME)
+
+        if not hostname:
+            hostname = self._base_url
+            use_default_endpoint = True
+        else:
+            use_default_endpoint = False
 
         endpoint = hostname + file_path
         # /some/dir/file_name
@@ -565,7 +573,8 @@ class HttpConnector(BaseConnector):
                 action_result,
                 endpoint=endpoint,
                 method=method,
-                verify=param.get('verify_certificate', False)
+                verify=param.get('verify_certificate', False),
+                use_default_endpoint=use_default_endpoint
             )
         except Exception as e:
             err = self._get_error_message_from_exception(e)
@@ -580,7 +589,6 @@ class HttpConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=r.status_code))
 
     def _handle_put_file(self, param, method):
-
         action_result = ActionResult(dict(param))
         self.add_action_result(action_result)
 
@@ -597,6 +605,7 @@ class HttpConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR,
                                             "{}. {}".format(HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG, err))
 
+        self.save_progress(f"{vault_meta_info}")
         # phantom vault file path
         vault_path = vault_meta_info[0].get('path')
         with open(vault_path, 'rb') as f:
@@ -605,7 +614,12 @@ class HttpConnector(BaseConnector):
         # phantom vault file name
         dest_file_name = vault_meta_info[0].get('name')
         file_dest = param[HTTP_JSON_FILE_DEST]
-        endpoint = param[HTTP_JSON_HOST]
+        endpoint = param.get(HTTP_JSON_HOST)
+        if not endpoint:
+            endpoint = self._base_url
+            use_default_endpoint = True
+        else:
+            use_default_endpoint = False
 
         file_dest = file_dest.strip('/')
 
@@ -613,7 +627,6 @@ class HttpConnector(BaseConnector):
 
         worker_dir = self.get_state_dir()
         file_path = '{}/{}'.format(worker_dir, dest_file_name)
-
         try:
             with open(file_path, 'wb') as fout:
                 fout.write(content)
@@ -628,7 +641,6 @@ class HttpConnector(BaseConnector):
                                            '/' if file_dest[-1] != '/' else '', file_dest, '/'
                                                if dest_file_name[-1] != '/' else '', dest_file_name)
 
-        params = {'file_path': file_dest}
         try:
             with open(file_path, 'rb') as f:
                 # Set file to be uploaded
@@ -636,13 +648,16 @@ class HttpConnector(BaseConnector):
                     'file': f
                 }
 
-                response = requests.post(endpoint, files=files, params=params, timeout=10)
-        except FileNotFoundError as e:
-            err = self._get_error_message_from_exception(e)
-            err = "{}. {}".format(err, HTTP_FILE_NOT_FOUND_ERR_MSG)
-            return action_result.set_status(phantom.APP_ERROR, HTTP_PUT_FILE_ERR_MSG.format(error=err))
+                ret_val, response = self._make_http_call(
+                    action_result,
+                    endpoint=destination_path,
+                    method=method,
+                    verify=param.get('verify_certificate', False),
+                    files=files,
+                    use_default_endpoint=use_default_endpoint
+                )
         except Exception as e:
-            err = "{}. {}".format(self._get_error_message_from_exception(e), response.text)
+            err = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
 
         summary = {'file_sent': destination_path}

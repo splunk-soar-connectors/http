@@ -228,10 +228,10 @@ class HttpConnector(BaseConnector):
         return phantom.APP_SUCCESS
 
     def _process_empty_reponse(self, response, action_result):
-
         if 200 <= response.status_code < 400:
+            if response.headers['Content-Type'] == 'application/octet-stream':
+                return RetVal(phantom.APP_SUCCESS, "Response includes a file.")
             return RetVal(phantom.APP_SUCCESS, None)
-
         return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
 
     def _process_html_response(self, response, action_result):
@@ -312,26 +312,26 @@ class HttpConnector(BaseConnector):
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), resp_json)
 
     def _process_response(self, r, action_result):
+        if r.headers['Content-Type'] == 'application/octet-stream':
+            r_text = ""
+        else:
+            r_text = r.text
 
         if hasattr(action_result, 'add_debug_data'):
             action_result.add_debug_data({'r_status_code': r.status_code})
-            action_result.add_debug_data({'r_text': r.text})
+            action_result.add_debug_data({'r_text': r_text})
             action_result.add_debug_data({'r_headers': r.headers})
 
-        if not r.text:
+        if not r_text:
             return self._process_empty_reponse(r, action_result)
-
         if 'xml' in r.headers.get('Content-Type', ''):
             return self._process_xml_response(r, action_result)
-
         if 'json' in r.headers.get('Content-Type', '') or 'javascript' in r.headers.get('Content-Type', ''):
             return self._process_json_response(r, action_result)
-
         if 'html' in r.headers.get('Content-Type', ''):
             return self._process_html_response(r, action_result)
-
         if 200 <= r.status_code < 400:
-            return RetVal(phantom.APP_SUCCESS, r.text)
+            return RetVal(phantom.APP_SUCCESS, r_text)
 
         message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
                 r.status_code, self._handle_py_ver_compat_for_input_str(r.text.replace('{', '{{').replace('}', '}}')))
@@ -370,7 +370,6 @@ class HttpConnector(BaseConnector):
                 auth = None
         else:
             url = self._base_url + endpoint
-
         try:
             r = request_func(
                     url,
@@ -380,7 +379,7 @@ class HttpConnector(BaseConnector):
                     headers=headers,
                     files=files,
                     timeout=self._timeout)
-            self.save_progress(f"Got response: {r.status_code}")
+
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(error_message))
@@ -567,7 +566,6 @@ class HttpConnector(BaseConnector):
         endpoint = hostname + file_path
         # /some/dir/file_name
         file_name = file_path.split('/')[-1]
-
         try:
             ret_val, r = self._make_http_call(
                 action_result,
@@ -660,16 +658,17 @@ class HttpConnector(BaseConnector):
             err = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
 
-        summary = {'file_sent': destination_path}
-        action_result.update_summary(summary)
-        return action_result.set_status(phantom.APP_SUCCESS)
+        if response.status_code == 200:
+            summary = {'file_sent': destination_path}
+            action_result.update_summary(summary)
+            return action_result.set_status(phantom.APP_SUCCESS)
+        else:
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=response.status_code))
 
     def _save_file_to_vault(self, action_result, response, file_name):
-
         # Create a tmp directory on the vault partition
 
         guid = uuid.uuid4()
-
         if hasattr(Vault, 'get_vault_tmp_dir'):
             temp_dir = Vault.get_vault_tmp_dir()
         else:
@@ -677,19 +676,15 @@ class HttpConnector(BaseConnector):
 
         local_dir = temp_dir + '/{}'.format(guid)
         self.save_progress("Using temp directory: {0}".format(guid))
-
         try:
             os.makedirs(local_dir)
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR,
                                             "Unable to create temporary folder {0}.".format(temp_dir), e)
-
         file_path = "{0}/{1}".format(local_dir, file_name)
-
         # open and download the file
         with open(file_path, 'wb') as f:
             f.write(response.content)
-
         contains = []
         file_ext = ''
         magic_str = magic.from_file(file_path)
@@ -698,14 +693,12 @@ class HttpConnector(BaseConnector):
                 contains.extend(cur_contains)
                 if not file_ext:
                     file_ext = extension
-
         file_name = '{}{}'.format(file_name, file_ext)
 
         # move the file to the vault
         status, vault_ret_message, vault_id = ph_rules.vault_add(file_location=file_path,
                                                                  container=self.get_container_id(), file_name=file_name,
                                                                  metadata={'contains': contains})
-
         curr_data = {}
 
         if status:

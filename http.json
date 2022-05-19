@@ -4,6 +4,11 @@
     "description": "This App facilitates making HTTP requests as actions",
     "package_name": "phantom_http",
     "publisher": "Splunk",
+    "contributors": [
+        {
+          "name": "Ricardo Moreira"
+        }
+    ],
     "type": "information",
     "main_module": "http_connector.py",
     "app_version": "3.5.0",

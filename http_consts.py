@@ -26,6 +26,7 @@ HTTP_EXCLUDE_FILENAME_ERR_MSG = "Error: Do not include filename in the file dest
 HTTP_PUT_FILE_ERR_MSG = "Error putting file. {error}"
 HTTP_JSON_FILE_PATH = 'file_path'
 HTTP_JSON_HOSTNAME = 'hostname'
+HTTP_JSON_ACCESS_TOKEN = 'access_token'
 HTTP_JSON_HOST = 'host'
 HTTP_JSON_VAULT_ID = 'vault_id'
 HTTP_JSON_FILE_DEST = 'file_destination'
@@ -33,3 +34,10 @@ UNKNOWN_ERR_MSG = "UNKNOWN ERR MSG"
 UNKNOWN_ERR_CODE_MSG = "UNKNOWN ERR CODE MSG"
 
 DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
+HTTP_STATE_IS_ENCRYPTED = 'is_encrypted'
+
+# For encryption and decryption
+HTTP_ENCRYPT_TOKEN = "Encrypting the {} token"
+HTTP_DECRYPT_TOKEN = "Decrypting the {} token"
+HTTP_ENCRYPTION_ERR = "Error occurred while encrypting the state file"
+HTTP_DECRYPTION_ERR = "Error occurred while decrypting the state file"

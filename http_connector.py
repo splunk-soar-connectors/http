@@ -473,8 +473,8 @@ class HttpConnector(BaseConnector):
 
         self.save_progress("Fetching new token")
         # Querying endpoint to generate token
-        response = requests.post(self._oauth_token_url, auth=HTTPBasicAuth(self._client_id, self._client_secret),
-                                 data=payload, timeout=DEFAULT_REQUEST_TIMEOUT)  # nosemgrep
+        response = requests.post(self._oauth_token_url, auth=HTTPBasicAuth(self._client_id, self._client_secret),  # nosemgrep
+                                 data=payload, timeout=DEFAULT_REQUEST_TIMEOUT)
         if response.status_code != 200:
             action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(
                 self._oauth_token_url, response.status_code))

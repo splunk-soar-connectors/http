@@ -26,6 +26,8 @@ HTTP_EXCLUDE_FILENAME_ERR_MSG = "Error: Do not include filename in the file dest
 HTTP_PUT_FILE_ERR_MSG = "Error putting file. {error}"
 HTTP_JSON_FILE_PATH = 'file_path'
 HTTP_INVALID_PATH_ERR = 'Invalid file path, please enter a valid file path'
+HTTP_INVALID_URL_ERR = 'Malformed URL, please enter hostname and filepath in proper format'
+
 HTTP_JSON_HOSTNAME = 'hostname'
 HTTP_JSON_ACCESS_TOKEN = 'access_token'
 HTTP_JSON_HOST = 'host'

@@ -1438,6 +1438,10 @@
                 "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
             },
             {
+                "module": "decorator",
+                "input_file": "wheels/py3/decorator-5.1.1-py3-none-any.whl"
+            },
+            {
                 "module": "idna",
                 "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
             },
@@ -1451,7 +1455,11 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.10-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.11-py2.py3-none-any.whl"
+            },
+            {
+                "module": "validators",
+                "input_file": "wheels/py3/validators-0.20.0-py3-none-any.whl"
             },
             {
                 "module": "xmltodict",

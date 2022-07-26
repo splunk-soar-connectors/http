@@ -27,6 +27,7 @@ import magic
 import phantom.app as phantom
 import phantom.rules as ph_rules
 import requests
+import validators
 import xmltodict
 from bs4 import BeautifulSoup, UnicodeDammit
 from phantom.action_result import ActionResult
@@ -546,19 +547,24 @@ class HttpConnector(BaseConnector):
         self.add_action_result(action_result)
 
         file_path = param[HTTP_JSON_FILE_PATH]
+        file_path = file_path.strip(" ")
+        file_path = file_path.rstrip("/")
         hostname = param.get(HTTP_JSON_HOSTNAME)
-
         if not hostname:
             hostname = self._base_url
             use_default_endpoint = True
         else:
             use_default_endpoint = False
+        hostname = hostname.strip(" ")
+        hostname = hostname.strip("/")
 
-        if file_path == "/":
+        if file_path == "":
             return action_result.set_status(phantom.APP_ERROR, HTTP_INVALID_PATH_ERR)
 
-        endpoint = hostname + file_path
-        # /some/dir/file_name
+        file_path = quote(file_path)
+        endpoint = "{0}/{1}".format(hostname, file_path)
+        if not validators.url(endpoint):
+            return action_result.set_status(phantom.APP_ERROR, HTTP_INVALID_URL_ERR)
         file_name = file_path.split('/')[-1]
         file_name = unquote_plus(file_name)
         try:
@@ -636,15 +642,16 @@ class HttpConnector(BaseConnector):
         endpoint = endpoint.rstrip('/')
 
         # encoding input file name
+        dest_file_name = dest_file_name.strip("/")
         dest_file_name = quote(dest_file_name)
 
         # Returning an error if the filename is included in the file_destination path
         if dest_file_name in file_dest:
             return action_result.set_status(phantom.APP_ERROR, HTTP_EXCLUDE_FILENAME_ERR_MSG)
 
-        destination_path = "{}{}{}{}{}".format(endpoint,
-                                               '/' if file_dest[-1] != '/' else '', file_dest, '/'
-                                               if dest_file_name[-1] != '/' else '', dest_file_name)
+        destination_path = "{}/{}/{}".format(endpoint, file_dest, dest_file_name)
+        if not validators.url(destination_path):
+            return action_result.set_status(phantom.APP_ERROR, HTTP_INVALID_URL_ERR)
 
         params = {'file_path': file_dest}
 

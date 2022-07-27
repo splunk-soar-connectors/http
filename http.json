@@ -1306,7 +1306,7 @@
                     "primary": true
                 },
                 "file_name": {
-                    "description": "Name of the file that needs to ve ingested",
+                    "description": "Name of the file to be put on endpoint",
                     "data_type": "string",
                     "required": false,
                     "order": 3

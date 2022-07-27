@@ -561,9 +561,11 @@ class HttpConnector(BaseConnector):
         if file_path == "":
             return action_result.set_status(phantom.APP_ERROR, HTTP_INVALID_PATH_ERR)
 
-        file_path = quote(file_path)
+        encoded_file_path = quote(file_path)
         endpoint = "{0}/{1}".format(hostname, file_path)
-        if not validators.url(endpoint):
+        validate_endpoint = "{0}/{1}".format(hostname, encoded_file_path)
+
+        if not validators.url(validate_endpoint):
             return action_result.set_status(phantom.APP_ERROR, HTTP_INVALID_URL_ERR)
         file_name = file_path.split('/')[-1]
         file_name = unquote_plus(file_name)
@@ -643,14 +645,16 @@ class HttpConnector(BaseConnector):
 
         # encoding input file name
         dest_file_name = dest_file_name.strip("/")
-        dest_file_name = quote(dest_file_name)
+        validate_dest_file_name = quote(dest_file_name)
 
         # Returning an error if the filename is included in the file_destination path
         if dest_file_name in file_dest:
             return action_result.set_status(phantom.APP_ERROR, HTTP_EXCLUDE_FILENAME_ERR_MSG)
 
         destination_path = "{}/{}/{}".format(endpoint, file_dest, dest_file_name)
-        if not validators.url(destination_path):
+        validate_destination_path = "{}/{}/{}".format(endpoint, file_dest, validate_dest_file_name)
+
+        if not validators.url(validate_destination_path):
             return action_result.set_status(phantom.APP_ERROR, HTTP_INVALID_URL_ERR)
 
         params = {'file_path': file_dest}

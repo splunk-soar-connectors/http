@@ -169,7 +169,6 @@ class HttpConnector(BaseConnector):
                     self._test_path = '/' + config['test_path']
                 else:
                     self._test_path = config['test_path']
-                self._test_path = self._test_path
             except Exception as e:
                 error_message = self._get_error_message_from_exception(e)
                 return self.set_status(phantom.APP_ERROR, "Given endpoint value is invalid: {0}".format(error_message))

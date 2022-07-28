@@ -11,7 +11,7 @@
     ],
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.5.1",
+    "app_version": "3.6.0",
     "utctime_updated": "2022-02-02T11:40:43.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
@@ -23,7 +23,7 @@
     "python_version": "3",
     "fips_compliant": true,
     "latest_tested_versions": [
-        "Tested with Splunk Trustar on 29th January 2022"
+        "Tested with Azure on 27th July 2022"
     ],
     "configuration": {
         "base_url": {
@@ -138,9 +138,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": false,
-                    "default": false
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -185,7 +183,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -289,9 +288,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": false,
-                    "default": false
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -336,7 +333,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -440,9 +438,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": false,
-                    "default": false
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -487,7 +483,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -586,9 +583,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 1,
-                    "required": false,
-                    "default": false
+                    "order": 1
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -626,7 +621,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -711,9 +707,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 1,
-                    "required": false,
-                    "default": false
+                    "order": 1
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -748,7 +742,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -847,9 +842,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 1,
-                    "required": false,
-                    "default": false
+                    "order": 1
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -893,7 +886,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -995,9 +989,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": false,
-                    "default": false
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -1048,7 +1040,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -1140,7 +1133,6 @@
                         "host name"
                     ],
                     "required": false,
-                    "default": "",
                     "primary": true
                 },
                 "file_path": {
@@ -1156,9 +1148,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": false,
-                    "default": false
+                    "order": 2
                 }
             },
             "render": {
@@ -1190,7 +1180,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -1282,7 +1273,6 @@
                         "host name"
                     ],
                     "required": false,
-                    "default": "",
                     "primary": true
                 },
                 "vault_id": {
@@ -1314,9 +1304,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 4,
-                    "required": false,
-                    "default": false
+                    "order": 4
                 }
             },
             "render": {
@@ -1365,7 +1353,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {

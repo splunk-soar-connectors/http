@@ -139,7 +139,6 @@ class HttpConnector(BaseConnector):
     def initialize(self):
 
         self._state = self.load_state()
-        # Fetching the Python major version
 
         if not isinstance(self._state, dict):
             self.debug_print("Resetting the state file with the default format")
@@ -227,7 +226,7 @@ class HttpConnector(BaseConnector):
     def _process_empty_reponse(self, response, action_result):
         if 200 <= response.status_code < 400:
             if response.headers['Content-Type'] == 'application/octet-stream':
-                return RetVal(phantom.APP_SUCCESS, "Response includes a file.")
+                return RetVal(phantom.APP_SUCCESS, "Response includes a file")
             return RetVal(phantom.APP_SUCCESS, None)
         return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)
 
@@ -334,7 +333,7 @@ class HttpConnector(BaseConnector):
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), r.text)
 
-    def _make_http_call(self, action_result, endpoint='', method='get', headers=None, params={},
+    def _make_http_call(self, action_result, endpoint='', method='get', headers=None, params=None,
                         verify=False, data=None, files=None, use_default_endpoint=False):
 
         auth = None
@@ -531,7 +530,7 @@ class HttpConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return ret_val
 
-        return self._make_http_call(
+        ret_val, _ = self._make_http_call(
             action_result,
             endpoint=location,
             method=method,
@@ -539,6 +538,7 @@ class HttpConnector(BaseConnector):
             verify=param.get('verify_certificate', False),
             data=body
         )
+        return ret_val
 
     def _handle_get_file(self, param, method):
 
@@ -668,10 +668,11 @@ class HttpConnector(BaseConnector):
                 files=files,
                 use_default_endpoint=use_default_endpoint
             )
-            f.close()
         except Exception as e:
             err = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
+        finally:
+            f.close()
 
         if response.status_code == 200:
             summary = {'file_sent': destination_path}

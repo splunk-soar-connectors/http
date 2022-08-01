@@ -2,11 +2,11 @@
 # HTTP
 
 Publisher: Splunk  
-Connector Version: 3\.5\.0  
+Connector Version: 3\.6\.0  
 Product Vendor: Generic  
 Product Name: HTTP  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.1\.0  
+Minimum Product Version: 5\.2\.0  
 
 This App facilitates making HTTP requests as actions
 
@@ -124,7 +124,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **location** |  required  | Location \(e\.g\. path/to/endpoint?query=string\) | string |  `endpoint` 
 **body** |  optional  | PATCH body \(query string, JSON, etc\.\) | string | 
-**verify\_certificate** |  required  | Verify certificates \(if using HTTPS\) | boolean | 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 **headers** |  optional  | Additional headers \(JSON object with headers\) | string | 
 
 #### Action Output
@@ -157,7 +157,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **location** |  required  | Location \(e\.g\. path/to/endpoint?query=string\) | string |  `endpoint` 
 **body** |  optional  | DELETE body \(query string, JSON, etc\.\) | string | 
-**verify\_certificate** |  required  | Verify certificates \(if using HTTPS\) | boolean | 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 **headers** |  optional  | Additional headers \(JSON object with headers\) | string | 
 
 #### Action Output
@@ -189,7 +189,7 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **location** |  required  | Location \(e\.g\. path/to/endpoint?query=string\) | string |  `endpoint` 
-**verify\_certificate** |  required  | Verify certificates \(if using HTTPS\) | boolean | 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 **headers** |  optional  | Additional headers \(JSON object with headers\) | string | 
 
 #### Action Output
@@ -218,7 +218,7 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **location** |  required  | Location \(e\.g\. path/to/endpoint?query=string\) | string |  `endpoint` 
-**verify\_certificate** |  required  | Verify certificates \(if using HTTPS\) | boolean | 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 **headers** |  optional  | Additional headers \(JSON object with headers\) | string | 
 
 #### Action Output
@@ -249,7 +249,7 @@ Read only: **True**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **location** |  required  | Location \(e\.g\. path/to/endpoint?query=string\) | string |  `endpoint` 
-**verify\_certificate** |  required  | Verify certificates \(if using HTTPS\) | boolean | 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 **headers** |  optional  | Additional headers \(JSON object with headers\) | string | 
 
 #### Action Output
@@ -281,7 +281,7 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **location** |  required  | Location \(e\.g\. path/to/endpoint\) | string |  `endpoint` 
 **body** |  required  | POST body \(query string, JSON, etc\.\) | string | 
-**verify\_certificate** |  required  | Verify certificates \(if using HTTPS\) | boolean | 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 **headers** |  optional  | Additional headers \(JSON object with headers\) | string | 
 
 #### Action Output
@@ -314,14 +314,16 @@ Provide the file path and file name to download into the vault\. For example, <b
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**hostname** |  required  | Hostname to execute command on | string |  `host name` 
+**hostname** |  optional  | Hostname to execute command on | string |  `host name` 
 **file\_path** |  required  | Path of the file to download \(include filename\) | string |  `file path` 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.status | string | 
 action\_result\.parameter\.file\_path | string |  `file path` 
+action\_result\.parameter\.verify\_certificate | boolean | 
 action\_result\.parameter\.hostname | string |  `host name` 
 action\_result\.data | string | 
 action\_result\.summary\.exit\_status | numeric | 
@@ -343,16 +345,20 @@ Provide the path to store the file on the file server\. For example, <b>/web\_st
 #### Action Parameters
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
-**host** |  required  | Hostname/IP with port number to execute command on | string |  `host name` 
+**host** |  optional  | Hostname/IP with port number to execute command on | string |  `host name` 
 **vault\_id** |  required  | Vault ID of file | string |  `vault id` 
 **file\_destination** |  required  | File destination path \(exclude filename\) | string |  `file path` 
+**file\_name** |  optional  | Name of the file to be put on endpoint | string | 
+**verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 
 #### Action Output
 DATA PATH | TYPE | CONTAINS
 --------- | ---- | --------
 action\_result\.status | string | 
+action\_result\.parameter\.file\_name | string | 
 action\_result\.parameter\.file\_destination | string |  `file path` 
 action\_result\.parameter\.host | string |  `host name` 
+action\_result\.parameter\.verify\_certificate | boolean | 
 action\_result\.parameter\.vault\_id | string |  `vault id` 
 action\_result\.data | string | 
 action\_result\.summary\.file\_sent | string |  `file path` 

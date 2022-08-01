@@ -4,21 +4,26 @@
     "description": "This App facilitates making HTTP requests as actions",
     "package_name": "phantom_http",
     "publisher": "Splunk",
+    "contributors": [
+        {
+            "name": "Ricardo Moreira"
+        }
+    ],
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.5.0",
+    "app_version": "3.6.0",
     "utctime_updated": "2022-02-02T11:40:43.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "5.1.0",
+    "min_phantom_version": "5.2.0",
     "license": "Copyright (c) 2016-2022 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
     "fips_compliant": true,
     "latest_tested_versions": [
-        "Tested with Splunk Trustar on 29th January 2022"
+        "Tested with Azure on 27th July 2022"
     ],
     "configuration": {
         "base_url": {
@@ -178,7 +183,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -282,8 +288,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": true
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -328,7 +333,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -432,8 +438,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": true
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -478,7 +483,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -577,8 +583,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 1,
-                    "required": true
+                    "order": 1
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -616,7 +621,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -701,8 +707,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 1,
-                    "required": true
+                    "order": 1
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -737,7 +742,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -836,8 +842,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 1,
-                    "required": true
+                    "order": 1
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -881,7 +886,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -983,8 +989,7 @@
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
                     "data_type": "boolean",
-                    "order": 2,
-                    "required": true
+                    "order": 2
                 },
                 "headers": {
                     "description": "Additional headers (JSON object with headers)",
@@ -1035,7 +1040,8 @@
                     "data_path": "action_result.parameter.verify_certificate",
                     "data_type": "boolean",
                     "example_values": [
-                        false
+                        false,
+                        true
                     ]
                 },
                 {
@@ -1126,7 +1132,7 @@
                     "contains": [
                         "host name"
                     ],
-                    "required": true,
+                    "required": false,
                     "primary": true
                 },
                 "file_path": {
@@ -1138,6 +1144,11 @@
                     ],
                     "required": true,
                     "primary": true
+                },
+                "verify_certificate": {
+                    "description": "Verify certificates (if using HTTPS)",
+                    "data_type": "boolean",
+                    "order": 2
                 }
             },
             "render": {
@@ -1163,6 +1174,14 @@
                     ],
                     "example_values": [
                         "/web_storage/file.tgz"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.verify_certificate",
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
                     ]
                 },
                 {
@@ -1253,7 +1272,7 @@
                     "contains": [
                         "host name"
                     ],
-                    "required": true,
+                    "required": false,
                     "primary": true
                 },
                 "vault_id": {
@@ -1275,6 +1294,17 @@
                     ],
                     "required": true,
                     "primary": true
+                },
+                "file_name": {
+                    "description": "Name of the file to be put on endpoint",
+                    "data_type": "string",
+                    "required": false,
+                    "order": 3
+                },
+                "verify_certificate": {
+                    "description": "Verify certificates (if using HTTPS)",
+                    "data_type": "boolean",
+                    "order": 4
                 }
             },
             "render": {
@@ -1290,6 +1320,13 @@
                     "example_values": [
                         "success",
                         "failed"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.file_name",
+                    "data_type": "string",
+                    "example_values": [
+                        "test.txt"
                     ]
                 },
                 {
@@ -1310,6 +1347,14 @@
                     ],
                     "example_values": [
                         "http://192.168.0.1:8001"
+                    ]
+                },
+                {
+                    "data_path": "action_result.parameter.verify_certificate",
+                    "data_type": "boolean",
+                    "example_values": [
+                        false,
+                        true
                     ]
                 },
                 {
@@ -1371,35 +1416,43 @@
         "wheel": [
             {
                 "module": "beautifulsoup4",
-                "input_file": "wheels/beautifulsoup4-4.9.1-py3-none-any.whl"
+                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
             },
             {
                 "module": "certifi",
-                "input_file": "wheels/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.6.15-py3-none-any.whl"
             },
             {
                 "module": "chardet",
-                "input_file": "wheels/chardet-3.0.4-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/chardet-3.0.4-py2.py3-none-any.whl"
+            },
+            {
+                "module": "decorator",
+                "input_file": "wheels/py3/decorator-5.1.1-py3-none-any.whl"
             },
             {
                 "module": "idna",
-                "input_file": "wheels/idna-2.10-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/idna-2.10-py2.py3-none-any.whl"
             },
             {
                 "module": "requests",
-                "input_file": "wheels/requests-2.25.0-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
             },
             {
                 "module": "soupsieve",
-                "input_file": "wheels/soupsieve-2.3.1-py3-none-any.whl"
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/urllib3-1.26.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.11-py2.py3-none-any.whl"
+            },
+            {
+                "module": "validators",
+                "input_file": "wheels/py3/validators-0.20.0-py3-none-any.whl"
             },
             {
                 "module": "xmltodict",
-                "input_file": "wheels/xmltodict-0.12.0-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/xmltodict-0.12.0-py2.py3-none-any.whl"
             }
         ]
     }

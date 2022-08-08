@@ -338,6 +338,7 @@ class HttpConnector(BaseConnector):
 
         auth = None
         headers = {} if not headers else headers
+        access_token = ''
         if self._username:
             self.save_progress("Using HTTP Basic auth to authenticate")
             auth = (self._username, self._password)

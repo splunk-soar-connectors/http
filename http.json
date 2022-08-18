@@ -16,7 +16,7 @@
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "5.2.0",
+    "min_phantom_version": "5.3.0",
     "license": "Copyright (c) 2016-2022 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",

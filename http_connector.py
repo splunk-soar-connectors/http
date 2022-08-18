@@ -338,6 +338,7 @@ class HttpConnector(BaseConnector):
 
         auth = None
         headers = {} if not headers else headers
+        access_token = ''
         if self._username:
             self.save_progress("Using HTTP Basic auth to authenticate")
             auth = (self._username, self._password)
@@ -354,11 +355,6 @@ class HttpConnector(BaseConnector):
         else:
             return action_result.set_status(phantom.APP_ERROR, "No authentication method set"), None
 
-        try:
-            request_func = getattr(requests, method)
-        except AttributeError:
-            return action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), None
-
         if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
             url = endpoint
             if not use_default_endpoint:
@@ -366,11 +362,10 @@ class HttpConnector(BaseConnector):
         else:
             url = self._base_url + endpoint
 
-        # encoding the url
-
         try:
-            r = request_func(
-                url,
+            r = requests.request(
+                method=method,
+                url=url,
                 auth=auth,
                 params=params,
                 data=UnicodeDammit(data).unicode_markup.encode('utf-8') if isinstance(data, str) else data,
@@ -384,7 +379,7 @@ class HttpConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Error Connecting to server. Details: {0}".format(error_message)), None
 
         # fetch new token if old one has expired
-        if r.status_code == 401 and self.access_token_retry:
+        if access_token and r.status_code == 401 and self.access_token_retry:
             self.save_progress("Got error: {}".format(r.status_code))
             self._state.pop('access_token')
             self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
@@ -474,7 +469,7 @@ class HttpConnector(BaseConnector):
         # Querying endpoint to generate token
         response = requests.post(self._oauth_token_url, auth=HTTPBasicAuth(self._client_id, self._client_secret),  # nosemgrep
                                  data=payload, timeout=DEFAULT_REQUEST_TIMEOUT)
-        if response.status_code != 200:
+        if response.status_code not in [200, 201]:
             action_result.set_status(phantom.APP_ERROR, "Error fetching token from {}. Server returned {}".format(
                 self._oauth_token_url, response.status_code))
             return None

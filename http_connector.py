@@ -355,11 +355,6 @@ class HttpConnector(BaseConnector):
         else:
             return action_result.set_status(phantom.APP_ERROR, "No authentication method set"), None
 
-        try:
-            request_func = getattr(requests, method)
-        except AttributeError:
-            return action_result.set_status(phantom.APP_ERROR, "Invalid method: {0}".format(method)), None
-
         if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
             url = endpoint
             if not use_default_endpoint:
@@ -367,11 +362,10 @@ class HttpConnector(BaseConnector):
         else:
             url = self._base_url + endpoint
 
-        # encoding the url
-
         try:
-            r = request_func(
-                url,
+            r = requests.request(
+                method=method,
+                url=url,
                 auth=auth,
                 params=params,
                 data=UnicodeDammit(data).unicode_markup.encode('utf-8') if isinstance(data, str) else data,

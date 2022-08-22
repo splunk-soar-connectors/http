@@ -25,11 +25,23 @@ HTTP_UNABLE_TO_RETRIEVE_VAULT_ITEM_ERR_MSG = "Unable to retrieve vault item deta
 HTTP_EXCLUDE_FILENAME_ERR_MSG = "Error: Do not include filename in the file destination"
 HTTP_PUT_FILE_ERR_MSG = "Error putting file. {error}"
 HTTP_JSON_FILE_PATH = 'file_path'
+HTTP_INVALID_PATH_ERR = 'Invalid file path, please enter a valid file path'
+HTTP_INVALID_URL_ERR = 'Malformed URL, please enter hostname and filepath in proper format'
+
 HTTP_JSON_HOSTNAME = 'hostname'
+HTTP_JSON_ACCESS_TOKEN = 'access_token'
 HTTP_JSON_HOST = 'host'
 HTTP_JSON_VAULT_ID = 'vault_id'
 HTTP_JSON_FILE_DEST = 'file_destination'
+HTTP_JSON_FILE_NAME = 'file_name'
 UNKNOWN_ERR_MSG = "UNKNOWN ERR MSG"
 UNKNOWN_ERR_CODE_MSG = "UNKNOWN ERR CODE MSG"
-
+HTTP_ERR_FILENAME_NOT_IN_VAULT = "Could not find file with specified filename in vault, please provide a valid filename"
 DEFAULT_REQUEST_TIMEOUT = 30  # in seconds
+HTTP_STATE_IS_ENCRYPTED = 'is_encrypted'
+
+# For encryption and decryption
+HTTP_ENCRYPT_TOKEN = "Encrypting the {} token"
+HTTP_DECRYPT_TOKEN = "Decrypting the {} token"
+HTTP_ENCRYPTION_ERR = "Error occurred while encrypting the state file"
+HTTP_DECRYPTION_ERR = "Error occurred while decrypting the state file"

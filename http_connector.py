@@ -105,7 +105,7 @@ class HttpConnector(BaseConnector):
                     error_code = HTTP_ERROR_CODE_MESSAGE
                     error_msg = e.args[0]
         except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+            self.error_print("Exception occurred.", ex)
 
         return "Error Code: {0}. Error Message: {1}".format(error_code, error_msg)
 
@@ -123,7 +123,7 @@ class HttpConnector(BaseConnector):
             parameter = int(parameter)
 
         except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+            self.error_print("Exception occurred.", ex)
             self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MESSAGE.format(key=key))
             return None
 
@@ -188,12 +188,12 @@ class HttpConnector(BaseConnector):
         try:
             unpacked = socket.gethostbyname(addr)
         except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+            self.error_print("Exception occurred.", ex)
             try:
                 packed = socket.inet_aton(addr)
                 unpacked = socket.inet_aton(packed)
             except Exception as ex:
-                self.debug_print("Exception: {}".format(ex))
+                self.error_print("Exception occurred.", ex)
                 # gethostbyname can fail even when the addr is a hostname
                 # If that happens, I think we can assume that it isn't localhost
                 unpacked = ""
@@ -206,7 +206,7 @@ class HttpConnector(BaseConnector):
                 if self._access_token:
                     self._access_token = self.decrypt_state(self._access_token, "access")
             except Exception as e:
-                self.debug_print("{}: {}".format(HTTP_DECRYPTION_ERR, self._get_error_message_from_exception(e)))
+                self.error_print(HTTP_DECRYPTION_ERR, e)
                 return self.set_status(phantom.APP_ERROR, HTTP_DECRYPTION_ERR)
 
         return phantom.APP_SUCCESS
@@ -217,7 +217,7 @@ class HttpConnector(BaseConnector):
                 self._state[HTTP_JSON_ACCESS_TOKEN] = self.encrypt_state(self._access_token, "access")
                 self._state[HTTP_STATE_IS_ENCRYPTED] = True
         except Exception as e:
-            self.debug_print("{}: {}".format(HTTP_ENCRYPTION_ERR, self._get_error_message_from_exception(e)))
+            self.error_print(HTTP_ENCRYPTION_ERR, e)
             return self.set_status(phantom.APP_ERROR, HTTP_ENCRYPTION_ERR)
 
         self.save_state(self._state)
@@ -243,7 +243,7 @@ class HttpConnector(BaseConnector):
             split_lines = [x.strip() for x in split_lines if x.strip()]
             error_text = '\n'.join(split_lines)
         except Exception as ex:
-            self.debug_print("Exception: {}".format(ex))
+            self.error_print("Exception occurred.", ex)
             error_text = "Cannot parse error details"
 
         response_data = error_text
@@ -264,7 +264,7 @@ class HttpConnector(BaseConnector):
                 resp_json = response.json()
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
-            self.debug_print("Unable to parse the response into a dictionary", error_message)
+            self.error_print("Unable to parse the response into a dictionary", error_message)
             return RetVal(action_result.set_status(phantom.APP_ERROR, "Unable to parse JSON response. Error: {0}".format(error_message)))
 
         if 200 <= response.status_code < 400:

@@ -11,19 +11,19 @@
     ],
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "3.6.0",
+    "app_version": "3.7.0",
     "utctime_updated": "2022-02-02T11:40:43.000000Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",
     "product_version_regex": ".*",
-    "min_phantom_version": "5.3.0",
+    "min_phantom_version": "5.3.3",
     "license": "Copyright (c) 2016-2022 Splunk Inc.",
     "logo": "logo_splunk.svg",
     "logo_dark": "logo_splunk_dark.svg",
     "python_version": "3",
     "fips_compliant": true,
     "latest_tested_versions": [
-        "Tested with Azure on 27th July 2022"
+        "Tested with Crowdstrike on 12th September 2022"
     ],
     "configuration": {
         "base_url": {
@@ -983,8 +983,7 @@
                 "body": {
                     "description": "POST body (query string, JSON, etc.)",
                     "data_type": "string",
-                    "order": 1,
-                    "required": true
+                    "order": 1
                 },
                 "verify_certificate": {
                     "description": "Verify certificates (if using HTTPS)",
@@ -1132,7 +1131,6 @@
                     "contains": [
                         "host name"
                     ],
-                    "required": false,
                     "primary": true
                 },
                 "file_path": {
@@ -1272,7 +1270,6 @@
                     "contains": [
                         "host name"
                     ],
-                    "required": false,
                     "primary": true
                 },
                 "vault_id": {
@@ -1298,7 +1295,6 @@
                 "file_name": {
                     "description": "Name of the file to be put on endpoint",
                     "data_type": "string",
-                    "required": false,
                     "order": 3
                 },
                 "verify_certificate": {
@@ -1444,7 +1440,7 @@
             },
             {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.11-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.12-py2.py3-none-any.whl"
             },
             {
                 "module": "validators",

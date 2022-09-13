@@ -1,2 +1,1 @@
 **Unreleased**
-* Changed the 'body' parameter to optional for the 'post data' action [PAPP-26977]

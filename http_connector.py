@@ -225,7 +225,7 @@ class HttpConnector(BaseConnector):
 
     def _process_empty_reponse(self, response, action_result):
         if 200 <= response.status_code < 400:
-            if response.headers['Content-Type'] == 'application/octet-stream':
+            if response.headers.get('Content-Type') == 'application/octet-stream':
                 return RetVal(phantom.APP_SUCCESS, "Response includes a file")
             return RetVal(phantom.APP_SUCCESS, None)
         return RetVal(action_result.set_status(phantom.APP_ERROR, "Empty response and no information in the header"), None)

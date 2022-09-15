@@ -2,11 +2,11 @@
 # HTTP
 
 Publisher: Splunk  
-Connector Version: 3\.6\.0  
+Connector Version: 3\.7\.0  
 Product Vendor: Generic  
 Product Name: HTTP  
 Product Version Supported (regex): "\.\*"  
-Minimum Product Version: 5\.3\.0  
+Minimum Product Version: 5\.3\.3  
 
 This App facilitates making HTTP requests as actions
 
@@ -280,7 +280,7 @@ Read only: **False**
 PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 --------- | -------- | ----------- | ---- | --------
 **location** |  required  | Location \(e\.g\. path/to/endpoint\) | string |  `endpoint` 
-**body** |  required  | POST body \(query string, JSON, etc\.\) | string | 
+**body** |  optional  | POST body \(query string, JSON, etc\.\) | string | 
 **verify\_certificate** |  optional  | Verify certificates \(if using HTTPS\) | boolean | 
 **headers** |  optional  | Additional headers \(JSON object with headers\) | string | 
 

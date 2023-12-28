@@ -69,7 +69,6 @@ class HttpConnector(BaseConnector):
         self._oauth_token_url = None
         self._client_id = None
         self._client_secret = None
-        self._state = None
         self._access_token = None
         self.access_token_retry = True
 

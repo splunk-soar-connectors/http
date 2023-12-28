@@ -1,6 +1,6 @@
 # File: http_connector.py
 #
-# Copyright (c) 2016-2022 Splunk Inc.
+# Copyright (c) 2016-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -69,7 +69,6 @@ class HttpConnector(BaseConnector):
         self._oauth_token_url = None
         self._client_id = None
         self._client_secret = None
-        self._state = None
         self._access_token = None
         self.access_token_retry = True
 
@@ -94,15 +93,15 @@ class HttpConnector(BaseConnector):
         :param e: Exception object
         :return: error message
         """
-        error_msg = HTTP_ERROR_MESSAGE
-        error_code = HTTP_ERROR_CODE_MESSAGE
+        error_msg = HTTP_ERR_MSG
+        error_code = HTTP_ERR_CODE_MSG
         try:
             if hasattr(e, 'args'):
                 if len(e.args) > 1:
                     error_code = e.args[0]
                     error_msg = e.args[1]
                 elif len(e.args) == 1:
-                    error_code = HTTP_ERROR_CODE_MESSAGE
+                    error_code = HTTP_ERR_CODE_MSG
                     error_msg = e.args[0]
         except Exception as ex:
             self.error_print("Exception occurred.", ex)
@@ -118,13 +117,13 @@ class HttpConnector(BaseConnector):
         """
         try:
             if not float(parameter).is_integer():
-                self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MESSAGE.format(key=key))
+                self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MSG.format(key=key))
                 return None
             parameter = int(parameter)
 
         except Exception as ex:
             self.error_print("Exception occurred.", ex)
-            self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MESSAGE.format(key=key))
+            self.set_status(phantom.APP_ERROR, HTTP_VALIDATE_INTEGER_MSG.format(key=key))
             return None
 
         if parameter < 0:
@@ -573,7 +572,7 @@ class HttpConnector(BaseConnector):
             )
         except Exception as e:
             err = self._get_error_message_from_exception(e)
-            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERR_MSG.format(error=err))
 
         if phantom.is_fail(ret_val):
             return action_result.get_status()
@@ -581,7 +580,7 @@ class HttpConnector(BaseConnector):
         if r.status_code == 200:
             return self._save_file_to_vault(action_result, r, file_name)
         else:
-            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=r.status_code))
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERR_MSG.format(error=r.status_code))
 
     def _handle_put_file(self, param, method):
         action_result = ActionResult(dict(param))
@@ -665,7 +664,7 @@ class HttpConnector(BaseConnector):
             )
         except Exception as e:
             err = self._get_error_message_from_exception(e)
-            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=err))
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERR_MSG.format(error=err))
         finally:
             f.close()
 
@@ -674,7 +673,7 @@ class HttpConnector(BaseConnector):
             action_result.update_summary(summary)
             return action_result.set_status(phantom.APP_SUCCESS)
         else:
-            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERROR_MESSAGE.format(error=response.status_code))
+            return action_result.set_status(phantom.APP_ERROR, HTTP_SERVER_CONNECTION_ERR_MSG.format(error=response.status_code))
 
     def _save_file_to_vault(self, action_result, response, file_name):
         # Create a tmp directory on the vault partition

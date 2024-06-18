@@ -444,6 +444,7 @@ class HttpConnector(BaseConnector):
         # fetch new token if old one has expired
         if access_token and r.status_code == 401 and self.access_token_retry:
             self.save_progress("Got error: {}".format(r.status_code))
+            self._access_token = None
             self._state.pop("access_token")
             self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
             return self._make_http_call(

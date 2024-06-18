@@ -1,6 +1,6 @@
 # File: http_connector.py
 #
-# Copyright (c) 2016-2023 Splunk Inc.
+# Copyright (c) 2016-2024 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -412,10 +412,7 @@ class HttpConnector(BaseConnector):
                 phantom.APP_ERROR, "No authentication method set"
             ), None
 
-        if (
-            self.get_action_identifier() == "get_file"
-            or self.get_action_identifier() == "put_file"
-        ):
+        if self.get_action_identifier() == 'get_file' or self.get_action_identifier() == 'put_file':
             url = endpoint
             if not use_default_endpoint:
                 auth = None
@@ -474,20 +471,14 @@ class HttpConnector(BaseConnector):
 
         ret_val, parsed_body = self._process_response(r, action_result)
 
-        if (
-            self.get_action_identifier() == "get_file"
-            or self.get_action_identifier() == "put_file"
-        ):
+        if self.get_action_identifier() == "get_file" or self.get_action_identifier() == "put_file":
             return ret_val, r
 
         resp_data = {
             "method": method.upper(),
             "location": url,
             "parsed_response_body": parsed_body,
-            "response_body": r.text
-            if "json" not in r.headers.get("Content-Type", "")
-            and "javascript" not in r.headers.get("Content-Type", "")
-            else parsed_body,
+            "response_body": r.text if "json" not in r.headers.get("Content-Type", "") and "javascript" not in r.headers.get("Content-Type", "") else parsed_body,
         }
         try:
             resp_data["response_headers"] = dict(r.headers)

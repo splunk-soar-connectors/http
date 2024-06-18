@@ -1,1 +1,3 @@
 **Unreleased**
+
+* Fix an error where OAuth parameters were handled incorrectly [PAPP-34185]

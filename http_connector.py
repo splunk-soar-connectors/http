@@ -474,11 +474,17 @@ class HttpConnector(BaseConnector):
         if self.get_action_identifier() == "get_file" or self.get_action_identifier() == "put_file":
             return ret_val, r
 
+        content_type = r.headers.get("Content-Type", "")
+        if "json" not in content_type and "javascript" not in content_type:
+            response_body = r.text
+        else:
+            response_body = parsed_body
+
         resp_data = {
             "method": method.upper(),
             "location": url,
             "parsed_response_body": parsed_body,
-            "response_body": r.text if "json" not in r.headers.get("Content-Type", "") and "javascript" not in r.headers.get("Content-Type", "") else parsed_body,
+            "response_body": response_body,
         }
         try:
             resp_data["response_headers"] = dict(r.headers)

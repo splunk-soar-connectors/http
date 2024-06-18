@@ -2,7 +2,7 @@
 # HTTP
 
 Publisher: Splunk  
-Connector Version: 3.7.1  
+Connector Version: 3.7.2  
 Product Vendor: Generic  
 Product Name: HTTP  
 Product Version Supported (regex): ".\*"  

@@ -452,8 +452,11 @@ class HttpConnector(BaseConnector):
                 endpoint=endpoint,
                 method=method,
                 headers=headers,
+                params=params,
                 verify=verify,
                 data=data,
+                files=files,
+                use_default_endpoint=use_default_endpoint,
             )
 
         # Return success for get headers action as it returns empty response body

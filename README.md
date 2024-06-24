@@ -2,11 +2,11 @@
 # HTTP
 
 Publisher: Splunk  
-Connector Version: 3.7.1  
+Connector Version: 3.7.2  
 Product Vendor: Generic  
 Product Name: HTTP  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.1.1  
+Minimum Product Version: 6.2.1  
 
 This App facilitates making HTTP requests as actions
 
@@ -31,9 +31,9 @@ HTTPS) on your Phantom host(s) in order to function.
 
 **Authentication is carried out in following priority order**
 
-1.  Basic Auth (username and password)
-2.  OAuth (oauth token url, client id and client secret)
-3.  Provided Auth token (auth_token_name, auth_token)
+1. Basic Auth (username and password)
+2. OAuth (oauth token url, client id and client secret)
+3. Provided Auth token (auth_token_name, auth_token)
 
 
 ### Configuration Variables

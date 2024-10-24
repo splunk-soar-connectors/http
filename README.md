@@ -6,7 +6,7 @@ Connector Version: 3.7.2
 Product Vendor: Generic  
 Product Name: HTTP  
 Product Version Supported (regex): ".\*"  
-Minimum Product Version: 6.2.1  
+Minimum Product Version: 6.2.2  
 
 This App facilitates making HTTP requests as actions
 

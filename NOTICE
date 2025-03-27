@@ -1,16 +1,29 @@
 Splunk SOAR HTTP
-Copyright (c) 2016-2023 Splunk Inc.
+Copyright (c) 2016-2025 Splunk Inc.
 
-Third-party Software Attributions:
+Third Party Software Attributions:
 
-Library: beautifulsoup4
+Name: beautifulsoup4
 Version: 4.9.1
+Author: Leonard Richardson
 License: MIT
-Copyright 2004-2017 Leonard Richardson
-Copyright 2004-2019 Leonard Richardson
-Copyright 2018 Isaac Muse
 
-Library: xmltodict
-Version: 0.12.0
+Name: decorator
+Version: 5.2.1
+Author:
+License: BSD-2-Clause
+
+Name: soupsieve
+Version: 2.6
+Author:
+License:
+
+Name: validators
+Version: 0.20.0
+Author: Konsta Vesterinen
 License: MIT
-Copyright 2012 Martin Blech and individual contributors
+
+Name: xmltodict
+Version: 0.12.0
+Author: Martin Blech
+License: MIT

@@ -1411,12 +1411,8 @@
     "pip39_dependencies": {
         "wheel": [
             {
-                "module": "decorator",
-                "input_file": "wheels/py3/decorator-5.2.1-py3-none-any.whl"
-            },
-            {
                 "module": "validators",
-                "input_file": "wheels/py3/validators-0.20.0-py3-none-any.whl"
+                "input_file": "wheels/py3/validators-0.35.0-py3-none-any.whl"
             }
         ]
     }

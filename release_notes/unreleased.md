@@ -1,3 +1,1 @@
 **Unreleased**
-
-* PAPP-36204: Update vulnerability with validators wheel

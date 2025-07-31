@@ -1,9 +1,9 @@
 # HTTP
 
-Publisher: Splunk \
-Connector Version: 3.7.5 \
-Product Vendor: Generic \
-Product Name: HTTP \
+Publisher: Splunk <br>
+Connector Version: 3.7.5 <br>
+Product Vendor: Generic <br>
+Product Name: HTTP <br>
 Minimum Product Version: 6.2.1
 
 This App facilitates making HTTP requests as actions
@@ -39,22 +39,22 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate connection using the configured credentials \
-[put data](#action-put-data) - Perform a REST PUT call to the server \
-[patch data](#action-patch-data) - Perform a REST PATCH call to the server \
-[delete data](#action-delete-data) - Perform a REST DELETE call to the server \
-[get headers](#action-get-headers) - Perform a REST HEAD call to the server \
-[get options](#action-get-options) - Perform a REST OPTIONS call to the server \
-[get data](#action-get-data) - Perform a REST GET call to the server \
-[post data](#action-post-data) - Perform a REST POST call to the server \
-[get file](#action-get-file) - Retrieve a file from the endpoint and save it to the vault \
+[test connectivity](#action-test-connectivity) - Validate connection using the configured credentials <br>
+[put data](#action-put-data) - Perform a REST PUT call to the server <br>
+[patch data](#action-patch-data) - Perform a REST PATCH call to the server <br>
+[delete data](#action-delete-data) - Perform a REST DELETE call to the server <br>
+[get headers](#action-get-headers) - Perform a REST HEAD call to the server <br>
+[get options](#action-get-options) - Perform a REST OPTIONS call to the server <br>
+[get data](#action-get-data) - Perform a REST GET call to the server <br>
+[post data](#action-post-data) - Perform a REST POST call to the server <br>
+[get file](#action-get-file) - Retrieve a file from the endpoint and save it to the vault <br>
 [put file](#action-put-file) - Put a file from the vault to another location
 
 ## action: 'test connectivity'
 
 Validate connection using the configured credentials
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 This action will perform a GET on the configured <b>base_url</b>. The action will succeed if given a status code between 200 and 399 (inclusive). Therefore, if the given base URL requires no authentication, this action may pass even if the supplied credentials are incorrect. Alternately, if the given base URL does not point to a valid endpoint, this action could fail even if other actions may succeed with valid <b>location</b> parameters.
@@ -71,7 +71,7 @@ No Output
 
 Perform a REST PUT call to the server
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -107,7 +107,7 @@ summary.total_objects_successful | numeric | | 0 |
 
 Perform a REST PATCH call to the server
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -143,7 +143,7 @@ summary.total_objects_successful | numeric | | 0 |
 
 Perform a REST DELETE call to the server
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -179,7 +179,7 @@ summary.total_objects_successful | numeric | | 0 |
 
 Perform a REST HEAD call to the server
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -211,7 +211,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Perform a REST OPTIONS call to the server
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -245,7 +245,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Perform a REST GET call to the server
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -279,7 +279,7 @@ summary.total_objects_successful | numeric | | 0 |
 
 Perform a REST POST call to the server
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 #### Action Parameters
@@ -315,7 +315,7 @@ summary.total_objects_successful | numeric | | 0 |
 
 Retrieve a file from the endpoint and save it to the vault
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 Provide the file path and file name to download into the vault. For example, <b>/web_storage/file.tgz</b>.
@@ -349,7 +349,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Put a file from the vault to another location
 
-Type: **generic** \
+Type: **generic** <br>
 Read only: **False**
 
 Provide the path to store the file on the file server. For example, <b>/web_storage/test_repo/</b>.

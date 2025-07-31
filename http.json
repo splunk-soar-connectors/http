@@ -1418,5 +1418,13 @@
                 "input_file": "wheels/py3/validators-0.35.0-py3-none-any.whl"
             }
         ]
+    },
+    "pip313_dependencies": {
+        "wheel": [
+            {
+                "module": "validators",
+                "input_file": "wheels/py3/validators-0.35.0-py3-none-any.whl"
+            }
+        ]
     }
 }

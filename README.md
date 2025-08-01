@@ -1,7 +1,7 @@
 # HTTP
 
 Publisher: Splunk <br>
-Connector Version: 3.7.5 <br>
+Connector Version: 3.7.6 <br>
 Product Vendor: Generic <br>
 Product Name: HTTP <br>
 Minimum Product Version: 6.2.1

@@ -1,15 +1,11 @@
 import requests
 from soar_sdk.abstract import SOARClient
-from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.app import App
 from soar_sdk.asset import AssetField, BaseAsset
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.logging import getLogger
 
-from soar_sdk.params import Param, Params
-
 logger = getLogger()
-
 
 class Asset(BaseAsset):
     base_url: str = AssetField(
@@ -89,6 +85,14 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
         raise ActionFailure(f"Test connectivity failed, details: {e}.")
 
     logger.info("Test connectivity passed!")
+
+from .actions.http_get import http_get
+app.register_action(
+    http_get,
+    description="Perform a REST GET call to the server", 
+    action_type="investigate",
+
+)
 
 if __name__ == "__main__":
     app.cli()

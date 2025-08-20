@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import xmltodict
 from soar_sdk.exceptions import ActionFailure
 
-
+from .common import logger
 
 def process_xml_response(response) -> dict:
     try:
@@ -34,3 +34,47 @@ def process_empty_response(content_type) -> dict:
 
 def process_text_response(response) -> str:
     return response.text
+
+RESPONSE_HANDLERS = {
+    "json": process_json_response,
+    "javascript": process_json_response,
+    "xml": process_xml_response,
+    "html": process_html_response,
+}
+
+
+def parse_headers(headers_str: str | None) -> dict:
+
+    parsed_headers = {}
+    if headers_str:
+
+        try:
+            parsed_headers = json.loads(headers_str)
+
+        except json.JSONDecodeError as e:
+            error_message = f"Failed to parse headers. Ensure it's a valid JSON object. Error: {e}"
+            logger.error(error_message)
+            raise ActionFailure(error_message)
+
+    if not isinstance(parsed_headers, dict):
+        raise ActionFailure("Headers parameter must be a valid JSON object (dictionary).")
+    
+    return parsed_headers
+
+
+def handle_various_response(response):
+    content_type = response.headers.get("Content-Type", "").lower()
+
+    if not response.text.strip():
+        parsed_body = process_empty_response(response)
+    else:
+        parser = process_text_response
+        for key, handler in RESPONSE_HANDLERS.items():
+            if key in content_type:
+                logger.info(f"Found handler for content type: {key}")
+                parser = handler
+                break
+        
+        parsed_body = parser(response)
+
+    return parsed_body

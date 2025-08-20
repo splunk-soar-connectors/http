@@ -7,7 +7,7 @@ from soar_sdk.logging import getLogger
 from .actions.action_get import http_get, get_action_type, get_action_description
 from .asset import Asset
 
-logger = getLogger()
+from .common import logger
 
 
 app = App(

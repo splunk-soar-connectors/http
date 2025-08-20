@@ -7,12 +7,12 @@ from soar_sdk.logging import getLogger
 from soar_sdk.params import Param, Params
 from ..asset import Asset
 from .. import helpers
-
+from ..common import logger
 
 
 get_action_type = "investigate"
 get_action_description = "This App facilitates making HTTP requests as actions"
-logger = getLogger()
+
 
 class GetDataOutput(ActionOutput):
     location: str = OutputField(
@@ -37,37 +37,12 @@ class GetDataParams(Params):
     headers: str = Param(description="Additional headers (JSON object with headers)", required=False)
 
 
-RESPONSE_HANDLERS = {
-    "json": helpers.process_json_response,
-    "javascript": helpers.process_json_response,
-    "xml": helpers.process_xml_response,
-    "html": helpers.process_html_response,
-}
-
-
 def http_get(params: GetDataParams, soar: SOARClient, asset: Asset) -> GetDataOutput:
     
     logger.info(f"In action handler for: http_get with location: {params.location}")
 
-
-    # logic to parsing headers (we need them to sent GET request):
-
-    parsed_headers = {}
-    if params.headers:
-
-        try:
-            parsed_headers = json.loads(params.headers)
-        except json.JSONDecodeError as e:
-            error_message = f"Failed to parse headers. Ensure it's a valid JSON object. Error: {e}"
-            logger.error(error_message)
-            raise ActionFailure(error_message)
-        
-    if not isinstance(parsed_headers, dict):
-        raise ActionFailure("Headers parameter must be a valid JSON object (dictionary).")
-        
-
-
-    # sending GET request:
+    parsed_headers = helpers.parse_headers(params.headers)
+    
 
     full_url = asset.base_url.rstrip("/") + "/" + params.location.lstrip('/')    
     logger.info(f"Making GET request to: {full_url}")
@@ -86,32 +61,12 @@ def http_get(params: GetDataParams, soar: SOARClient, asset: Asset) -> GetDataOu
         raise ActionFailure(error_message)
 
 
+    parsed_body = helpers.handle_various_response(response)
 
-    # logic to handle various types of responses (in output we have to have parsed body and raw_body):
-
-    content_type = response.headers.get("Content-Type", "").lower()
-
-    if not response.text.strip():
-        parsed_body = helpers.process_empty_response(response)
-    else:
-        parser = helpers.process_text_response
-        for key, handler in RESPONSE_HANDLERS.items():
-            if key in content_type:
-                logger.info(f"Found handler for content type: {key}")
-                parser = handler
-                break
-        
-        parsed_body = parser(response)  
-
-    if isinstance(parsed_body, dict):
-        raw_body = json.dumps(parsed_body, indent=4)
-    else:
-        raw_body = response.text
+    raw_body = json.dumps(parsed_body, indent=4) if isinstance(parsed_body, dict) else response.text 
 
     logger.info(f"Successfully processed data. Status: {response.status_code}")
     
-
-    #output:
 
     return GetDataOutput(
         location=full_url,

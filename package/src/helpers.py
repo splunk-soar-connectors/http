@@ -19,11 +19,11 @@ def process_json_response(response) -> dict:
 
 def process_html_response(response) -> str:
     try:
-            soup = BeautifulSoup(response.text, "html.parser")
-            for element in soup(["script", "style", "footer", "nav"]):
-                element.extract()
-            error_text_lines = [x.strip() for x in soup.text.split("\n") if x.strip()]
-            return "\n".join(error_text_lines)
+        soup = BeautifulSoup(response.text, "html.parser")
+        for element in soup(["script", "style", "footer", "nav"]):
+            element.extract()
+        error_text_lines = [x.strip() for x in soup.text.split("\n") if x.strip()]
+        return "\n".join(error_text_lines)
     
     except Exception as e:
         raise ActionFailure(f"Unable to parse HTML response. Error: {e}")
@@ -45,16 +45,16 @@ RESPONSE_HANDLERS = {
 
 def parse_headers(headers_str: str | None) -> dict:
 
-    parsed_headers = {}
-    if headers_str:
+    if not headers_str:
+        return {}
 
-        try:
-            parsed_headers = json.loads(headers_str)
+    try:
+        parsed_headers = json.loads(headers_str)
 
-        except json.JSONDecodeError as e:
-            error_message = f"Failed to parse headers. Ensure it's a valid JSON object. Error: {e}"
-            logger.error(error_message)
-            raise ActionFailure(error_message)
+    except json.JSONDecodeError as e:
+        error_message = f"Failed to parse headers. Ensure it's a valid JSON object. Error: {e}"
+        logger.error(error_message)
+        raise ActionFailure(error_message)
 
     if not isinstance(parsed_headers, dict):
         raise ActionFailure("Headers parameter must be a valid JSON object (dictionary).")
@@ -66,15 +66,13 @@ def handle_various_response(response):
     content_type = response.headers.get("Content-Type", "").lower()
 
     if not response.text.strip():
-        parsed_body = process_empty_response(response)
-    else:
-        parser = process_text_response
-        for key, handler in RESPONSE_HANDLERS.items():
-            if key in content_type:
-                logger.info(f"Found handler for content type: {key}")
-                parser = handler
-                break
-        
-        parsed_body = parser(response)
+        return process_empty_response(response)
 
-    return parsed_body
+    parser = process_text_response(response)
+    for key, handler in RESPONSE_HANDLERS.items():
+        if key in content_type:
+            logger.info(f"Found handler for content type: {key}")
+            parser = handler
+            break
+    
+    return parser(response)

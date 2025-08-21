@@ -1,49 +1,13 @@
 import requests
 from soar_sdk.abstract import SOARClient
 from soar_sdk.app import App
-from soar_sdk.asset import AssetField, BaseAsset
 from soar_sdk.exceptions import ActionFailure
 from soar_sdk.logging import getLogger
 
-logger = getLogger()
+from .actions.action_get import http_get, get_action_type, get_action_description
+from .asset import Asset
 
-
-class Asset(BaseAsset):
-    base_url: str = AssetField(
-        required=True,
-        description="Base URL for making queries. (e.g. https://myservice/)",
-    )
-    test_path: str = AssetField(
-        required=False,
-        description="Endpoint for test connectivity. (e.g. /some/specific/endpoint , appended to Base URL)",
-    )
-    auth_token_name: str = AssetField(
-        required=False,
-        description="Type of authentication token",
-        default="ph-auth-token",
-    )
-    auth_token: str = AssetField(required=False, description="Value of authentication token")
-    username: str = AssetField(required=False, description="Username (for HTTP basic auth)")
-    password: str = AssetField(required=False, description="Password (for HTTP basic auth)")
-    oauth_token_url: str = AssetField(required=False, description="URL to fetch oauth token from")
-    client_id: str = AssetField(required=False, description="Client ID (for OAuth)")
-    client_secret: str = AssetField(required=False, description="Client Secret (for OAuth)")
-    timeout: float = AssetField(required=False, description="Timeout for HTTP calls")
-    test_http_method: str = AssetField(
-        required=False,
-        description="HTTP Method for Test Connectivity",
-        default="GET",
-        value_list=[
-            "GET",
-            "HEAD",
-            "POST",
-            "PUT",
-            "DELETE",
-            "OPTIONS",
-            "TRACE",
-            "PATCH",
-        ],
-    )
+from .common import logger
 
 
 app = App(
@@ -86,6 +50,12 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
         raise ActionFailure(f"Test connectivity failed, details: {e}.")
 
     logger.info("Test connectivity passed!")
+
+app.register_action(
+    http_get,
+    action_type = get_action_type,
+    description = get_action_description
+)
 
 if __name__ == "__main__":
     app.cli()

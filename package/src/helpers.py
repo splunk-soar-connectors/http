@@ -1,3 +1,16 @@
+# Copyright (c) 2025 Splunk Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import json
 from bs4 import BeautifulSoup
 import xmltodict
@@ -5,17 +18,20 @@ from soar_sdk.exceptions import ActionFailure
 
 from .common import logger
 
+
 def process_xml_response(response) -> dict:
     try:
         return xmltodict.parse(response.text)
     except Exception as e:
-        raise ActionFailure(f"Unable to parse XML response. Error: {e}")
-    
+        raise ActionFailure(f"Unable to parse XML response. Error: {e}") from e
+
+
 def process_json_response(response) -> dict:
     try:
         return response.json()
     except json.JSONDecodeError as e:
-        raise ActionFailure(f"Unable to parse JSON response. Error: {e}")
+        raise ActionFailure(f"Unable to parse JSON response. Error: {e}") from e
+
 
 def process_html_response(response) -> str:
     try:
@@ -24,16 +40,23 @@ def process_html_response(response) -> str:
             element.extract()
         error_text_lines = [x.strip() for x in soup.text.split("\n") if x.strip()]
         return "\n".join(error_text_lines)
-    
+
     except Exception as e:
-        raise ActionFailure(f"Unable to parse HTML response. Error: {e}")
+        raise ActionFailure(f"Unable to parse HTML response. Error: {e}") from e
+
 
 def process_empty_response(content_type) -> dict:
-    message = "Response includes a file" if "octet-stream" in content_type else "Empty response body"
+    message = (
+        "Response includes a file"
+        if "octet-stream" in content_type
+        else "Empty response body"
+    )
     return {"message": message}
+
 
 def process_text_response(response) -> str:
     return response.text
+
 
 RESPONSE_HANDLERS = {
     "json": process_json_response,
@@ -44,7 +67,6 @@ RESPONSE_HANDLERS = {
 
 
 def parse_headers(headers_str: str | None) -> dict:
-
     if not headers_str:
         return {}
 
@@ -52,13 +74,17 @@ def parse_headers(headers_str: str | None) -> dict:
         parsed_headers = json.loads(headers_str)
 
     except json.JSONDecodeError as e:
-        error_message = f"Failed to parse headers. Ensure it's a valid JSON object. Error: {e}"
+        error_message = (
+            f"Failed to parse headers. Ensure it's a valid JSON object. Error: {e}"
+        )
         logger.error(error_message)
-        raise ActionFailure(error_message)
+        raise ActionFailure(error_message) from e
 
     if not isinstance(parsed_headers, dict):
-        raise ActionFailure("Headers parameter must be a valid JSON object (dictionary).")
-    
+        raise ActionFailure(
+            "Headers parameter must be a valid JSON object (dictionary)."
+        )
+
     return parsed_headers
 
 
@@ -74,5 +100,5 @@ def handle_various_response(response):
             logger.info(f"Found handler for content type: {key}")
             parser = handler
             break
-    
+
     return parser(response)

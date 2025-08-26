@@ -1,21 +1,26 @@
 import json
-from bs4 import BeautifulSoup
+from typing import Optional
+
 import xmltodict
+from bs4 import BeautifulSoup
 from soar_sdk.exceptions import ActionFailure
 
 from .common import logger
+
 
 def process_xml_response(response) -> dict:
     try:
         return xmltodict.parse(response.text)
     except Exception as e:
         raise ActionFailure(f"Unable to parse XML response. Error: {e}")
-    
+
+
 def process_json_response(response) -> dict:
     try:
         return response.json()
     except json.JSONDecodeError as e:
         raise ActionFailure(f"Unable to parse JSON response. Error: {e}")
+
 
 def process_html_response(response) -> str:
     try:
@@ -24,16 +29,19 @@ def process_html_response(response) -> str:
             element.extract()
         error_text_lines = [x.strip() for x in soup.text.split("\n") if x.strip()]
         return "\n".join(error_text_lines)
-    
+
     except Exception as e:
         raise ActionFailure(f"Unable to parse HTML response. Error: {e}")
+
 
 def process_empty_response(content_type) -> dict:
     message = "Response includes a file" if "octet-stream" in content_type else "Empty response body"
     return {"message": message}
 
+
 def process_text_response(response) -> str:
     return response.text
+
 
 RESPONSE_HANDLERS = {
     "json": process_json_response,
@@ -43,8 +51,7 @@ RESPONSE_HANDLERS = {
 }
 
 
-def parse_headers(headers_str: str | None) -> dict:
-
+def parse_headers(headers_str: Optional[str]) -> dict:
     if not headers_str:
         return {}
 
@@ -58,7 +65,7 @@ def parse_headers(headers_str: str | None) -> dict:
 
     if not isinstance(parsed_headers, dict):
         raise ActionFailure("Headers parameter must be a valid JSON object (dictionary).")
-    
+
     return parsed_headers
 
 
@@ -74,5 +81,5 @@ def handle_various_response(response):
             logger.info(f"Found handler for content type: {key}")
             parser = handler
             break
-    
+
     return parser(response)

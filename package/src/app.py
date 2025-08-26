@@ -2,13 +2,11 @@ import requests
 from soar_sdk.abstract import SOARClient
 from soar_sdk.app import App
 from soar_sdk.exceptions import ActionFailure
-from soar_sdk.logging import getLogger
 
-from .actions.action_get import http_get, get_action_type, get_action_description
+from .actions.action_get import get_action_description, get_action_type, http_get
+from .actions.action_post import http_post, post_action_description, post_action_type
 from .asset import Asset
-
 from .common import logger
-
 
 app = App(
     name="http",
@@ -33,7 +31,6 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
         full_url = full_url + "/" + asset.test_path.lstrip("/")
     logger.info(f"Querying base url, {full_url}, to test credentials.")
 
-
     try:
         response = requests.request(
             method=asset.test_http_method,
@@ -44,19 +41,22 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
         logger.info(f"Got status code {response.status_code}.")
         response.raise_for_status()
 
-
     except requests.exceptions.RequestException as e:
         logger.error(f"Test connectivity failed, error: {e}.")
         raise ActionFailure(f"Test connectivity failed, details: {e}.")
 
     logger.info("Test connectivity passed!")
 
+
+app.register_action(http_get, action_type=get_action_type, description=get_action_description)
+
 app.register_action(
-    http_get,
-    action_type = get_action_type,
-    description = get_action_description
+    http_post,
+    action_type=post_action_type,
+    description=post_action_description,
+    read_only=False,
 )
+
 
 if __name__ == "__main__":
     app.cli()
-

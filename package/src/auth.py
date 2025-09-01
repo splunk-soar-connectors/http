@@ -34,8 +34,6 @@ class BasicAuth(Authorization):
     def create_auth(self, headers):
         return (self.username, self.password), headers
 
-        # tu logger "Using HTTP Basic auth to authenticate"
-
 
 class TokenAuth(Authorization):
     def __init__(self, asset):
@@ -43,7 +41,6 @@ class TokenAuth(Authorization):
         self.auth_token = asset.auth_token
 
     def create_auth(self, headers):
-        # tu logger "Using provided token to authenticate"
         if self.auth_token and self.auth_token_name not in headers:
             headers[self.auth_token_name] = self.auth_token
         return None, headers
@@ -95,7 +92,6 @@ class OAuth(Authorization):
         return self.__generate_new_token()
 
     def create_auth(self, headers: dict) -> tuple[None, dict]:
-        # tu logger
         access_token = self.__get_token()
 
         headers["Authorization"] = f"Bearer {access_token}"
@@ -108,7 +104,6 @@ class NoAuth(Authorization):
         pass
 
     def create_auth(self, headers):
-        # to logger
         return None, headers
 
 

@@ -3,8 +3,10 @@ from typing import Optional
 
 import xmltodict
 from bs4 import BeautifulSoup
+from pydantic import ValidationError
 from soar_sdk.exceptions import ActionFailure
 
+from .classes import ParsedResponseBody
 from .common import logger
 
 
@@ -17,9 +19,12 @@ def process_xml_response(response) -> dict:
 
 def process_json_response(response) -> dict:
     try:
-        return response.json()
+        data = response.json()
+        return ParsedResponseBody(**data)
     except json.JSONDecodeError as e:
-        raise ActionFailure(f"Unable to parse JSON response. Error: {e}")
+        raise ActionFailure(f"Server claimed JSON but failed to parse. Error: {e}")
+    except ValidationError as e:
+        raise ActionFailure(f"Response JSON did not match expected structure. Details: {e}")
 
 
 def process_html_response(response) -> str:
@@ -52,7 +57,7 @@ RESPONSE_HANDLERS = {
 
 
 def parse_headers(headers_str: Optional[str]) -> dict:
-    if not headers_str:
+    if headers_str is None:
         return {}
 
     try:
@@ -71,15 +76,19 @@ def parse_headers(headers_str: Optional[str]) -> dict:
 
 def handle_various_response(response):
     content_type = response.headers.get("Content-Type", "").lower()
+    if not response.text.strip() or ("application/octet-stream" in content_type):
+        return process_empty_response(content_type), ""
 
-    if not response.text.strip():
-        return process_empty_response(response)
-
-    parser = process_text_response(response)
+    parser = process_text_response
     for key, handler in RESPONSE_HANDLERS.items():
         if key in content_type:
-            logger.info(f"Found handler for content type: {key}")
             parser = handler
             break
 
-    return parser(response)
+    parsed_body = parser(response)
+
+    if isinstance(parsed_body, (dict, list)):
+        raw_body = json.dumps(parsed_body, indent=4)
+    else:
+        raw_body = response.text
+    return parsed_body, raw_body

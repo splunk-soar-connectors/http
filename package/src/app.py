@@ -1,20 +1,20 @@
-import requests
 from soar_sdk.abstract import SOARClient
+from soar_sdk.action_results import ActionOutput
 from soar_sdk.app import App
-from soar_sdk.exceptions import ActionFailure
 
-from .actions.action_get import get_action_description, get_action_type, http_get
-from .actions.action_post import http_post, post_action_description, post_action_type
+from .actions.action_get import get_action_description, get_action_type, get_data
+from .actions.action_post import post_action_description, post_action_type, post_data
 from .asset import Asset
 from .common import logger
+from .request_maker import make_request
 
 app = App(
-    name="http",
+    name="HTTP",
     app_type="generic",
     logo="logo.svg",
     logo_dark="logo_dark.svg",
-    product_vendor="Splunk Inc.",
-    product_name="http",
+    product_vendor="Generic",
+    product_name="HTTP",
     publisher="Splunk Inc.",
     appid="dc312038-005f-470f-badb-8a353ba9bb5b",
     fips_compliant=False,
@@ -22,36 +22,35 @@ app = App(
 )
 
 
+class EmptyOutput(ActionOutput):
+    """An empty output class for actions that do not return data, like test_connectivity."""
+
+    pass
+
+
 @app.test_connectivity()
 def test_connectivity(soar: SOARClient, asset: Asset) -> None:
 
     logger.info("Action 'Test Connectivity' started.")
-    full_url = asset.base_url.rstrip("/")
-    if asset.test_path:
-        full_url = full_url + "/" + asset.test_path.lstrip("/")
-    logger.info(f"Querying base url, {full_url}, to test credentials.")
 
-    try:
-        response = requests.request(
-            method=asset.test_http_method,
-            url=full_url,
-            verify=False,
-            timeout=asset.timeout,
-        )
-        logger.info(f"Got status code {response.status_code}.")
-        response.raise_for_status()
-
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Test connectivity failed, error: {e}.")
-        raise ActionFailure(f"Test connectivity failed, details: {e}.")
+    make_request(
+        asset=asset,
+        soar=soar,
+        method=asset.test_http_method,
+        location=asset.test_path if asset.test_path else "",
+        output=EmptyOutput,
+        verify=False,
+        headers=None,
+        body=None,
+    )
 
     logger.info("Test connectivity passed!")
 
 
-app.register_action(http_get, action_type=get_action_type, description=get_action_description)
+app.register_action(get_data, action_type=get_action_type, description=get_action_description)
 
 app.register_action(
-    http_post,
+    post_data,
     action_type=post_action_type,
     description=post_action_description,
     read_only=False,

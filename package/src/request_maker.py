@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 
 import requests
@@ -20,13 +19,13 @@ def make_request(
     location: str,
     output: type[ActionOutput],
     verify: bool,
-    headers: str,
+    headers: Optional[str],
     body: Optional[str],
 ) -> ActionOutput:
 
     logger.info(f"Preparing to make {method} http request.")
-
     parsed_headers = helpers.parse_headers(headers)
+
     full_url = asset.base_url.rstrip("/") + "/" + location.lstrip("/")
 
     logger.info(f"Making {method} request to: {full_url}")
@@ -45,22 +44,23 @@ def make_request(
             verify=verify,
             headers=final_headers,
             timeout=asset.timeout,
+            params=None,
         )
-        response.raise_for_status
+        response.raise_for_status()
+
     except requests.exceptions.RequestException as e:
         logger.error(f"Request failed for {full_url}. Details: {e}")
         raise ActionFailure(f"Request failed for {full_url}. Details: {e}") from e
 
-    parsed_body = helpers.handle_various_response(response)
-
-    raw_body = json.dumps(parsed_body, indent=4) if isinstance(parsed_body, dict) else response.text
-
+    parsed_body, raw_body = helpers.handle_various_response(response)
     logger.info(f"Successfully processed data. Status: {response.status_code}")
-
+    success_message = f"Status code: {response.status_code}"
     return output(
+        message=success_message,
+        summary=success_message,
         location=full_url,
         method=method,
-        parsed_response_body=str(parsed_body),
+        parsed_response_body=parsed_body,
         response_body=raw_body,
         response_headers=str(dict(response.headers)),
     )

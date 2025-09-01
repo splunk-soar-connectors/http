@@ -16,6 +16,7 @@ from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
+from ..classes import ParsedResponseBody
 from ..common import logger
 from ..request_maker import make_request
 
@@ -24,9 +25,11 @@ get_action_description = "This App facilitates making HTTP requests as actions"
 
 
 class GetDataOutput(ActionOutput):
+    message: str
+    summary: str
     location: str = OutputField(cef_types=["url"], example_values=["http://192.168.1.26/rest/cont"])
     method: str = OutputField(example_values=["GET"])
-    parsed_response_body: str = OutputField(example_values=['{"failed": true, "message": "Requested item not found"}'])
+    parsed_response_body: ParsedResponseBody = OutputField(example_values=['{"failed": true, "message": "Requested item not found"}'])
     response_body: str = OutputField(example_values=['{"failed": true, "message": "Requested item not found"}'])
     response_headers: str
 
@@ -41,7 +44,7 @@ class GetDataParams(Params):
     headers: str = Param(description="Additional headers (JSON object with headers)", required=False)
 
 
-def http_get(params: GetDataParams, soar: SOARClient, asset: Asset) -> GetDataOutput:
+def get_data(params: GetDataParams, soar: SOARClient, asset: Asset) -> GetDataOutput:
     logger.info("In action handler for: http_get")
     return make_request(
         asset=asset,

@@ -1,5 +1,5 @@
 [project]
-name = "http"
+name = "HTTP"
 version = "4.0.0"
 description = "app"
 license = "Copyright (c) 2025 Splunk Inc."

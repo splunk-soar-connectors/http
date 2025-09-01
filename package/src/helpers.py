@@ -19,8 +19,7 @@ def process_xml_response(response) -> dict:
 
 def process_json_response(response) -> dict:
     try:
-        data = response.json()
-        return ParsedResponseBody(**data)
+        return ParsedResponseBody(**response.json())
     except json.JSONDecodeError as e:
         raise ActionFailure(f"Server claimed JSON but failed to parse. Error: {e}")
     except ValidationError as e:

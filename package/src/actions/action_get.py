@@ -45,7 +45,7 @@ class GetDataParams(Params):
 
 
 def get_data(params: GetDataParams, soar: SOARClient, asset: Asset) -> GetDataOutput:
-    logger.info("In action handler for: http_get")
+    logger.info("In action handler for: get_data")
     return make_request(
         asset=asset,
         soar=soar,

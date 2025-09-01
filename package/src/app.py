@@ -4,6 +4,7 @@ from soar_sdk.app import App
 
 from .actions.action_get import get_action_description, get_action_type, get_data
 from .actions.action_post import post_action_description, post_action_type, post_data
+from .actions.action_put import put_action_description, put_action_type, put_data
 from .asset import Asset
 from .common import logger
 from .request_maker import make_request
@@ -56,6 +57,6 @@ app.register_action(
     read_only=False,
 )
 
-
+app.register_action(put_data, action_type=put_action_type, description=put_action_description, read_only=False)
 if __name__ == "__main__":
     app.cli()

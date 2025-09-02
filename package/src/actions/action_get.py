@@ -20,8 +20,8 @@ from ..classes import ParsedResponseBody
 from ..common import logger
 from ..request_maker import make_request
 
-get_action_type = "investigate"
-get_action_description = "This App facilitates making HTTP requests as actions"
+action_type = "investigate"
+action_description = "This App facilitates making HTTP requests as actions"
 
 
 class GetDataOutput(ActionOutput):

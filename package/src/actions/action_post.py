@@ -7,8 +7,8 @@ from ..classes import ParsedResponseBody
 from ..common import logger
 from ..request_maker import make_request
 
-post_action_type = "generic"
-post_action_description = "Perform a REST POST call to the server"
+action_type = "generic"
+action_description = "Perform a REST POST call to the server"
 
 
 class PostDataOutput(ActionOutput):

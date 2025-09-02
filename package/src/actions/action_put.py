@@ -7,8 +7,8 @@ from ..classes import ParsedResponseBody
 from ..common import logger
 from ..request_maker import make_request
 
-put_action_description = "Perform a REST PUT call to the server"
-put_action_type = "generic"
+action_description = "Perform a REST PUT call to the server"
+action_type = "generic"
 
 
 class PutDataOutput(ActionOutput):

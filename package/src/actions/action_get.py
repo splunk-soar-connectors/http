@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from soar_sdk.abstract import SOARClient
-from soar_sdk.action_results import ActionOutput, OutputField
 from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..classes import ParsedResponseBody
+from ..classes import BaseHttpOutput
 from ..common import logger
 from ..request_maker import make_request
 
@@ -24,14 +23,8 @@ action_type = "investigate"
 action_description = "This App facilitates making HTTP requests as actions"
 
 
-class GetDataOutput(ActionOutput):
-    message: str
-    summary: str
-    location: str = OutputField(cef_types=["url"], example_values=["http://192.168.1.26/rest/cont"])
-    method: str = OutputField(example_values=["GET"])
-    parsed_response_body: ParsedResponseBody = OutputField(example_values=['{"failed": true, "message": "Requested item not found"}'])
-    response_body: str = OutputField(example_values=['{"failed": true, "message": "Requested item not found"}'])
-    response_headers: str
+class GetDataOutput(BaseHttpOutput):
+    pass
 
 
 class GetDataParams(Params):

@@ -6,34 +6,33 @@ from ..classes import BaseHttpOutput
 from ..common import logger
 from ..request_maker import make_request
 
-action_description = "Perform a REST PUT call to the server"
-action_type = "generic"
+action_description = "Perform a REST HEAD call to the server"
+action_type = "investigate"
 
 
-class PutDataOutput(BaseHttpOutput):
+class GetHeadersOutput(BaseHttpOutput):
     pass
 
 
-class PutDataParams(Params):
+class GetHeadersParams(Params):
     location: str = Param(
         description="Location (e.g. path/to/endpoint?query=string)",
         primary=True,
         cef_types=["endpoint"],
     )
-    body: str = Param(description="PATCH body (query string, JSON, etc.)")
     verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
     headers: str = Param(description="Additional headers (JSON object with headers)")
 
 
-def put_data(params: PutDataParams, soar: SOARClient, asset: Asset) -> PutDataOutput:
-    logger.info("In action handler for: put_data")
+def get_headers(params: GetHeadersParams, soar: SOARClient, asset: Asset) -> GetHeadersOutput:
+    logger.info("In action handler for: head_data")
     return make_request(
         asset=asset,
         soar=soar,
-        method="PUT",
+        method="HEAD",
         location=params.location,
         headers=params.headers,
         verify=params.verify_certificate,
-        body=params.body,
-        output=PutDataOutput,
+        output=GetHeadersOutput,
+        body=None,
     )

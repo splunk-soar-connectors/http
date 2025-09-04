@@ -6,34 +6,34 @@ from ..classes import BaseHttpOutput
 from ..common import logger
 from ..request_maker import make_request
 
+action_description = "Perform a REST DELETE call to the server"
 action_type = "generic"
-action_description = "Perform a REST POST call to the server"
 
 
-class PostDataOutput(BaseHttpOutput):
+class DeleteDataOutput(BaseHttpOutput):
     pass
 
 
-class PostDataParams(Params):
+class DeleteDataParams(Params):
     location: str = Param(
-        description="Location (e.g. path/to/endpoint)",
+        description="Location (e.g. path/to/endpoint?query=string)",
         primary=True,
         cef_types=["endpoint"],
     )
-    body: str = Param(description="POST body (query string, JSON, etc.)", required=False)
+    body: str = Param(description="DELETE body (query string, JSON, etc.)")
     verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
-    headers: str = Param(description="Additional headers (JSON object with headers)", required=False)
+    headers: str = Param(description="Additional headers (JSON object with headers)")
 
 
-def post_data(params: PostDataParams, soar: SOARClient, asset: Asset) -> PostDataOutput:
-    logger.info("In action handler for: http_post")
+def delete_data(params: DeleteDataParams, soar: SOARClient, asset: Asset) -> DeleteDataOutput:
+    logger.info("In action handler for: head_data")
     return make_request(
         asset=asset,
         soar=soar,
-        method="POST",
+        method="DELETE",
         location=params.location,
         headers=params.headers,
         verify=params.verify_certificate,
-        body=params.body,
-        output=PostDataOutput,
+        output=DeleteDataOutput,
+        body=None,
     )

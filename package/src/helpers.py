@@ -26,13 +26,15 @@ def process_json_response(response) -> dict:
         raise ActionFailure(f"Response JSON did not match expected structure. Details: {e}")
 
 
-def process_html_response(response) -> str:
+def process_html_response(response) -> ParsedResponseBody:
     try:
         soup = BeautifulSoup(response.text, "html.parser")
         for element in soup(["script", "style", "footer", "nav"]):
             element.extract()
         error_text_lines = [x.strip() for x in soup.text.split("\n") if x.strip()]
-        return "\n".join(error_text_lines)
+        cleaned_text = "\n".join(error_text_lines)
+        data_dict = {"cleaned_html_text": cleaned_text}
+        return ParsedResponseBody(**data_dict)
 
     except Exception as e:
         raise ActionFailure(f"Unable to parse HTML response. Error: {e}")
@@ -43,8 +45,9 @@ def process_empty_response(content_type) -> dict:
     return {"message": message}
 
 
-def process_text_response(response) -> str:
-    return response.text
+def process_text_response(response) -> ParsedResponseBody:
+    data_dict = {"raw_text": response.text}
+    return ParsedResponseBody(**data_dict)
 
 
 RESPONSE_HANDLERS = {

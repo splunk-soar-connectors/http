@@ -1,8 +1,8 @@
 from soar_sdk.abstract import SOARClient
-from soar_sdk.params import Param, Params
+from soar_sdk.params import Param
 
 from ..asset import Asset
-from ..classes import BaseHttpOutput
+from ..classes import BaseHttpOutput, BaseHttpParams
 from ..common import logger
 from ..request_maker import make_request
 
@@ -14,15 +14,8 @@ class PutDataOutput(BaseHttpOutput):
     pass
 
 
-class PutDataParams(Params):
-    location: str = Param(
-        description="Location (e.g. path/to/endpoint?query=string)",
-        primary=True,
-        cef_types=["endpoint"],
-    )
+class PutDataParams(BaseHttpParams):
     body: str = Param(description="PATCH body (query string, JSON, etc.)")
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
-    headers: str = Param(description="Additional headers (JSON object with headers)")
 
 
 def put_data(params: PutDataParams, soar: SOARClient, asset: Asset) -> PutDataOutput:

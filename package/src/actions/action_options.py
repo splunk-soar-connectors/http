@@ -1,8 +1,7 @@
 from soar_sdk.abstract import SOARClient
-from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..classes import BaseHttpOutput
+from ..classes import BaseHttpOutput, BaseHttpParams
 from ..common import logger
 from ..request_maker import make_request
 
@@ -10,14 +9,8 @@ action_description = "Perform a REST OPTIONS call to the server"
 action_type = "investigate"
 
 
-class GetOptionsParams(Params):
-    location: str = Param(
-        description="Location (e.g. path/to/endpoint?query=string)",
-        primary=True,
-        cef_types=["endpoint"],
-    )
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
-    headers: str = Param(description="Additional headers (JSON object with headers)")
+class GetOptionsParams(BaseHttpParams):
+    pass
 
 
 class GetOptionsOutput(BaseHttpOutput):

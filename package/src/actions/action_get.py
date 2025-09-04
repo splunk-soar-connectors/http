@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from soar_sdk.abstract import SOARClient
-from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..classes import BaseHttpOutput
+from ..classes import BaseHttpOutput, BaseHttpParams
 from ..common import logger
 from ..request_maker import make_request
 
@@ -27,14 +26,8 @@ class GetDataOutput(BaseHttpOutput):
     pass
 
 
-class GetDataParams(Params):
-    location: str = Param(
-        description="Location (e.g. path/to/endpoint?query=string)",
-        primary=True,
-        cef_types=["endpoint"],
-    )
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
-    headers: str = Param(description="Additional headers (JSON object with headers)", required=False)
+class GetDataParams(BaseHttpParams):
+    pass
 
 
 def get_data(params: GetDataParams, soar: SOARClient, asset: Asset) -> GetDataOutput:

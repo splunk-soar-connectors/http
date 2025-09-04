@@ -1,8 +1,7 @@
 from soar_sdk.abstract import SOARClient
-from soar_sdk.params import Param, Params
 
 from ..asset import Asset
-from ..classes import BaseHttpOutput
+from ..classes import BaseHttpOutput, BaseHttpParams
 from ..common import logger
 from ..request_maker import make_request
 
@@ -14,14 +13,8 @@ class GetHeadersOutput(BaseHttpOutput):
     pass
 
 
-class GetHeadersParams(Params):
-    location: str = Param(
-        description="Location (e.g. path/to/endpoint?query=string)",
-        primary=True,
-        cef_types=["endpoint"],
-    )
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
-    headers: str = Param(description="Additional headers (JSON object with headers)")
+class GetHeadersParams(BaseHttpParams):
+    pass
 
 
 def get_headers(params: GetHeadersParams, soar: SOARClient, asset: Asset) -> GetHeadersOutput:

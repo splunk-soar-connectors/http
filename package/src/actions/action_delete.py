@@ -1,8 +1,8 @@
 from soar_sdk.abstract import SOARClient
-from soar_sdk.params import Param, Params
+from soar_sdk.params import Param
 
 from ..asset import Asset
-from ..classes import BaseHttpOutput
+from ..classes import BaseHttpOutput, BaseHttpParams
 from ..common import logger
 from ..request_maker import make_request
 
@@ -14,15 +14,8 @@ class DeleteDataOutput(BaseHttpOutput):
     pass
 
 
-class DeleteDataParams(Params):
-    location: str = Param(
-        description="Location (e.g. path/to/endpoint?query=string)",
-        primary=True,
-        cef_types=["endpoint"],
-    )
+class DeleteDataParams(BaseHttpParams):
     body: str = Param(description="DELETE body (query string, JSON, etc.)")
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
-    headers: str = Param(description="Additional headers (JSON object with headers)")
 
 
 def delete_data(params: DeleteDataParams, soar: SOARClient, asset: Asset) -> DeleteDataOutput:

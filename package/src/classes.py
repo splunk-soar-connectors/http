@@ -1,5 +1,6 @@
 from pydantic import Extra
 from soar_sdk.action_results import ActionOutput, GenericActionOutput, OutputField
+from soar_sdk.params import Param, Params
 
 
 class ParsedResponseBody(ActionOutput):
@@ -17,3 +18,13 @@ class BaseHttpOutput(GenericActionOutput):
 
     def generate_action_summary_message(self) -> str:
         return f"Status code: {self.status_code}"
+
+
+class BaseHttpParams(Params):
+    location: str = Param(
+        description="Location (e.g. path/to/endpoint)",
+        primary=True,
+        cef_types=["endpoint"],
+    )
+    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
+    headers: str = Param(description="Additional headers (JSON object with headers)", required=False)

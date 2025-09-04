@@ -26,7 +26,7 @@ class DeleteDataParams(Params):
 
 
 def delete_data(params: DeleteDataParams, soar: SOARClient, asset: Asset) -> DeleteDataOutput:
-    logger.info("In action handler for: head_data")
+    logger.info("In action handler for: delete_data")
     return make_request(
         asset=asset,
         soar=soar,

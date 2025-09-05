@@ -54,10 +54,9 @@ def make_request(
 
     parsed_body, raw_body = helpers.handle_various_response(response)
     logger.info(f"Successfully processed data. Status: {response.status_code}")
-    success_message = f"Status code: {response.status_code}"
+
     return output(
-        message=success_message,
-        summary=success_message,
+        status_code=response.status_code,
         location=full_url,
         method=method,
         parsed_response_body=parsed_body,

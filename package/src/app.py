@@ -2,7 +2,7 @@ from soar_sdk.abstract import SOARClient
 from soar_sdk.action_results import ActionOutput
 from soar_sdk.app import App
 
-from .actions import action_delete, action_get, action_head, action_options, action_patch, action_post, action_put
+from .actions import action_delete, action_get, action_head, action_options, action_patch, action_post, action_put, get_file, put_file
 from .asset import Asset
 from .common import logger
 from .request_maker import make_request
@@ -53,6 +53,11 @@ app.register_action(action_patch.patch_data, action_type=action_patch.action_typ
 app.register_action(action_delete.delete_data, action_type=action_delete.action_type, description=action_delete.action_description)
 app.register_action(action_head.get_headers, action_type=action_head.action_type, description=action_head.action_description)
 app.register_action(action_options.get_options, action_type=action_options.action_type, description=action_options.action_description)
+app.register_action(
+    put_file.put_file, action_type=put_file.action_type, description=put_file.action_description, read_only=False, verbose=put_file.verbose
+)
+app.register_action(get_file.get_file, action_type=get_file.action_type, description=get_file.action_description, verbose=get_file.verbose)
+
 
 if __name__ == "__main__":
     app.cli()

@@ -52,7 +52,7 @@ class OAuth(Authorization):
         self.soar = soar_client
         self.state_key = f"oauth_token_{asset.asset_id}"
 
-    def __generate_new_token(self):
+    def _generate_new_token(self):
         token_url = self.asset.oauth_token_url
         client_id = self.asset.client_id
         client_secret = self.asset.client_secret
@@ -78,18 +78,17 @@ class OAuth(Authorization):
         if not access_token:
             raise ActionFailure("Access token not found in response body")
 
-        self.soar.set_state({self.state_key: access_token})
+        self.soar.auth_state[self.state_key] = access_token
 
         return access_token
 
-    def __get_token(self) -> str:
-        state = self.soar.get_state()
-        cached_token = state.get(self.state_key)
+    def get_token(self, force_new: bool = False) -> str:
+        cached_token = self.soar.auth_state.get(self.state_key)
 
-        if cached_token:
+        if cached_token and not force_new:
             return cached_token
 
-        return self.__generate_new_token()
+        return self._generate_new_token()
 
     def create_auth(self, headers: dict) -> tuple[None, dict]:
         access_token = self.__get_token()

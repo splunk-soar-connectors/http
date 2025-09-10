@@ -38,16 +38,14 @@ verbose = "Provide the path to store the file on the file server. For example, <
 
 def put_file(params: PutFileParams, soar: SOARClient, asset: Asset) -> PutFileOutput:
     try:
-        attachments = soar.vault.get_attachment(vault_id=params.vault_id)
-        if not attachments:
+        if not (attachments := soar.vault.get_attachment(vault_id=params.vault_id)):
             raise ActionFailure(f"File with vault_id '{params.vault_id}' not found in vault.")
         vault_attachment = attachments[0]
         file_name_to_send = params.file_name or vault_attachment.name
-        if params.file_name:
-            if vault_attachment.name != params.file_name:
-                logger.warning(
-                    f"Provided file_name '{params.file_name}' does not match the name in vault '{vault_attachment.name}'. Using provided name."
-                )
+        if params.file_name and vault_attachment.name != params.file_name:
+            logger.warning(
+                f"Provided file_name '{params.file_name}' does not match the name in vault '{vault_attachment.name}'. Using provided name."
+            )
         with vault_attachment.open() as f:
             base_url = params.host or asset.base_url
             full_url = f"{base_url.rstrip('/')}/{params.file_destination.lstrip('/')}/{quote(file_name_to_send)}"

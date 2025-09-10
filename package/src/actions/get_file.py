@@ -15,9 +15,10 @@ class GetFileParams(Params):
     hostname: str = Param(
         description="Hostname to execute command on",
         primary=True,
-        cef_types=["host name"],
+        cef_types=["hostname"],
     )
     file_path: str = Param(
+        required=True,
         description="Path of the file to download (include filename)",
         primary=True,
         cef_types=["file path"],
@@ -38,8 +39,6 @@ verbose = "Provide the file path and file name to download into the vault. For e
 def get_file(params: GetFileParams, soar: SOARClient, asset: Asset) -> GetFileOutput:
     hostname = params.hostname.strip(" ").strip("/") or asset.base_url
     file_path = params.file_path.strip()
-    if not file_path:
-        raise ActionFailure("Parameter 'file_path' cannot be empty.")
     encoded_file_path = quote(file_path)
     validate_url = f"{hostname}/{encoded_file_path}"
 
@@ -69,16 +68,16 @@ def get_file(params: GetFileParams, soar: SOARClient, asset: Asset) -> GetFileOu
         if not file_content:
             raise ActionFailure("Downloaded file is empty.")
 
-        vault_add_result = soar.vault.create_attachment(
-            file_content=file_content, file_name=file_name, container_id=soar.get_container_id, metadata=None
-        )
+        container_id_to_use = soar.get_container_id()
 
-        if not vault_add_result.success:
-            raise ActionFailure(f"Failed to add file to vault. Reason: {vault_add_result.message}")
+        if not (
+            new_vault_id := soar.vault.create_attachment(
+                file_content=file_content, file_name=file_name, container_id=container_id_to_use, metadata=None
+            )
+        ):
+            raise ActionFailure("Failed to add file to vault.")
 
-        return GetFileOutput(
-            vault_id=vault_add_result.vault_id,
-            file_name=file_name,
-        )
     except Exception as e:
         raise ActionFailure(f"An error occurred while saving the file to the vault. Details: {e}")
+
+    return GetFileOutput(vault_id=new_vault_id, file_name=file_name)

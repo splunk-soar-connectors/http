@@ -12,6 +12,8 @@ from ..common import logger
 
 
 class PutFileParams(Params):
+    """Defines the input parameters for the 'Put File' action."""
+
     host: str = Param(
         description="Hostname/IP with port number to execute command on",
         primary=True,
@@ -28,15 +30,16 @@ class PutFileParams(Params):
 
 
 class PutFileOutput(ActionOutput):
+    """Defines the structured output for the 'Put File' action."""
+
     file_sent: str
 
 
-action_description = "Put a file from the vault to another location"
-action_type = "generic"
 verbose = "Provide the path to store the file on the file server. For example, <b>/web_storage/test_repo/</b>."
 
 
 def put_file(params: PutFileParams, soar: SOARClient, asset: Asset) -> PutFileOutput:
+    """Put a file from the vault to another location."""
     try:
         if not (attachments := soar.vault.get_attachment(vault_id=params.vault_id)):
             raise ActionFailure(f"File with vault_id '{params.vault_id}' not found in vault.")

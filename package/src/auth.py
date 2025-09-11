@@ -21,12 +21,34 @@ from soar_sdk.exceptions import ActionFailure
 
 
 class Authorization(ABC):
+    """
+    Abstract base class for defining an authentication strategy.
+
+    Each strategy must implement the `create_auth` method, which is responsible
+    for preparing the necessary authentication objects and headers for a request.
+    """
+
     @abstractmethod
     def create_auth(self, headers) -> Tuple[Optional[AuthBase], dict]:
+        """
+        Prepares authentication components for an HTTP request.
+
+        Args:
+            headers (dict): The initial dictionary of headers for the request.
+
+        Returns:
+            Tuple[Optional[AuthBase], dict]: A tuple containing:
+                - An optional `requests.auth.AuthBase` object.
+                - The updated headers dictionary.
+        """
         pass
 
 
 class BasicAuth(Authorization):
+    """
+    Implements HTTP Basic Authentication using username and password.
+    """
+
     def __init__(self, asset):
         self.username = asset.username
         self.password = asset.password
@@ -36,6 +58,10 @@ class BasicAuth(Authorization):
 
 
 class TokenAuth(Authorization):
+    """
+    Implements authentication using a static token in a specified header.
+    """
+
     def __init__(self, asset):
         self.auth_token_name = asset.auth_token_name
         self.auth_token = asset.auth_token
@@ -47,12 +73,22 @@ class TokenAuth(Authorization):
 
 
 class OAuth(Authorization):
+    """
+    Implements OAuth 2.0 Client Credentials Grant Flow.
+
+    This strategy fetches an access token from a token URL, caches it in the
+    app's authentication state, and adds it to the request as a Bearer token.
+    """
+
     def __init__(self, asset, soar_client):
         self.asset = asset
         self.soar = soar_client
         self.state_key = f"oauth_token_{asset.asset_id}"
 
     def _generate_new_token(self):
+        """
+        Fetches a new OAuth access token and saves it to the app's auth_state.
+        """
         token_url = self.asset.oauth_token_url
         client_id = self.asset.client_id
         client_secret = self.asset.client_secret
@@ -83,6 +119,13 @@ class OAuth(Authorization):
         return access_token
 
     def get_token(self, force_new: bool = False) -> str:
+        """
+        Retrieves a token, either from the cached state or by fetching a new one.
+
+        Args:
+            force_new (bool): If True, forces a new token to be fetched,
+                              ignoring any cached token.
+        """
         cached_token = self.soar.auth_state.get(self.state_key)
 
         if cached_token and not force_new:
@@ -99,6 +142,10 @@ class OAuth(Authorization):
 
 
 class NoAuth(Authorization):
+    """
+    Represents an anonymous request with no authentication.
+    """
+
     def __init__(self, asset):
         pass
 
@@ -107,6 +154,20 @@ class NoAuth(Authorization):
 
 
 def get_auth_method(asset, soar_client):
+    """
+    Factory function to select and instantiate the appropriate auth strategy.
+
+    Based on the provided asset configuration, this function determines which
+    authentication method to use (Basic, Token, OAuth, or None) and returns
+    an instance of the corresponding strategy class.
+
+    Args:
+        asset (Asset): The asset configuration object.
+        soar_client (SOARClient): The SOAR client, needed for stateful strategies like OAuth.
+
+    Returns:
+        Authorization: An instance of a class that implements the Authorization strategy.
+    """
     if asset.username and asset.password:
         return BasicAuth(asset)
     elif asset.auth_token_name and asset.auth_token:

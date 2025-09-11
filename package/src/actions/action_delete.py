@@ -6,19 +6,25 @@ from ..classes import BaseHttpOutput, BaseHttpParams
 from ..common import logger
 from ..request_maker import make_request
 
-action_description = "Perform a REST DELETE call to the server"
-action_type = "generic"
-
 
 class DeleteDataOutput(BaseHttpOutput):
+    """
+    Defines the structured output for the 'DELETE Request' action.
+    """
+
     pass
 
 
 class DeleteDataParams(BaseHttpParams):
+    """
+    Defines the input parameters for the 'DELETE Request' action.
+    """
+
     body: str = Param(description="DELETE body (query string, JSON, etc.)", required=False)
 
 
 def delete_data(params: DeleteDataParams, soar: SOARClient, asset: Asset) -> DeleteDataOutput:
+    """Perform a REST DELETE call to the server."""
     logger.info("In action handler for: delete_data")
     return make_request(
         asset=asset,

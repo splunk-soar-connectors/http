@@ -1,9 +1,9 @@
 from soar_sdk.abstract import SOARClient
-from soar_sdk.action_results import ActionOutput
 from soar_sdk.app import App
 
 from .actions import action_delete, action_get, action_head, action_options, action_patch, action_post, action_put, get_file, put_file
 from .asset import Asset
+from .classes import EmptyOutput
 from .common import logger
 from .request_maker import make_request
 
@@ -21,14 +21,10 @@ app = App(
 )
 
 
-class EmptyOutput(ActionOutput):
-    pass
-
-
 @app.test_connectivity()
 def test_connectivity(soar: SOARClient, asset: Asset) -> None:
-
-    logger.info("Action 'Test Connectivity' started.")
+    """Validate connection using the configured credentials."""
+    logger.info("In action handler for: test_connectivity")
 
     make_request(
         asset=asset,
@@ -44,17 +40,15 @@ def test_connectivity(soar: SOARClient, asset: Asset) -> None:
     logger.info("Test connectivity passed!")
 
 
-app.register_action(action_get.get_data, action_type=action_get.action_type, description=action_get.action_description)
-app.register_action(action_post.post_data, action_type=action_post.action_type, description=action_post.action_description, read_only=False)
-app.register_action(action_put.put_data, action_type=action_put.action_type, description=action_put.action_description, read_only=False)
-app.register_action(action_patch.patch_data, action_type=action_patch.action_type, description=action_patch.action_description)
-app.register_action(action_delete.delete_data, action_type=action_delete.action_type, description=action_delete.action_description)
-app.register_action(action_head.get_headers, action_type=action_head.action_type, description=action_head.action_description)
-app.register_action(action_options.get_options, action_type=action_options.action_type, description=action_options.action_description)
-app.register_action(
-    put_file.put_file, action_type=put_file.action_type, description=put_file.action_description, read_only=False, verbose=put_file.verbose
-)
-app.register_action(get_file.get_file, action_type=get_file.action_type, description=get_file.action_description, verbose=get_file.verbose)
+app.register_action(action_get.get_data, action_type="investigate")
+app.register_action(action_post.post_data, action_type="generic", read_only=False)
+app.register_action(action_put.put_data, action_type="generic", read_only=False)
+app.register_action(action_patch.patch_data, action_type="generic", read_only=False)
+app.register_action(action_delete.delete_data, action_type="generic", read_only=False)
+app.register_action(action_head.get_headers, action_type="investigate")
+app.register_action(action_options.get_options, action_type="investigate")
+app.register_action(put_file.put_file, action_type="generic", read_only=False, verbose=put_file.verbose)
+app.register_action(get_file.get_file, action_type="investigate", verbose=get_file.verbose)
 
 
 if __name__ == "__main__":

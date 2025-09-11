@@ -22,6 +22,12 @@ def make_request(
     headers: Optional[str],
     body: Optional[str],
 ) -> ActionOutput:
+    """
+    The central engine for making all HTTP requests.
+
+    This function handles parameter parsing, URL construction, authentication,
+    request execution (with OAuth token refresh logic), and response processing.
+    """
 
     logger.info(f"Preparing to make {method} http request.")
     parsed_headers = helpers.parse_headers(headers)

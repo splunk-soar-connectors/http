@@ -12,6 +12,8 @@ from ..auth import get_auth_method
 
 
 class GetFileParams(Params):
+    """Defines the input parameters for the 'Get File' action."""
+
     hostname: str = Param(
         description="Hostname to execute command on",
         primary=True,
@@ -27,16 +29,17 @@ class GetFileParams(Params):
 
 
 class GetFileOutput(ActionOutput):
+    """Defines the structured output for the 'Get File' action."""
+
     vault_id: str
     file_name: str
 
 
-action_description = "Retrieve a file from the endpoint and save it to the vault"
-action_type = "investigate"
 verbose = "Provide the file path and file name to download into the vault. For example, <b>/web_storage/file.tgz</b>."
 
 
 def get_file(params: GetFileParams, soar: SOARClient, asset: Asset) -> GetFileOutput:
+    """Retrieve a file from the endpoint and save it to the vault."""
     hostname = params.hostname.strip(" ").strip("/") or asset.base_url
     file_path = params.file_path.strip()
     encoded_file_path = quote(file_path)

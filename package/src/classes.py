@@ -3,13 +3,22 @@ from soar_sdk.action_results import ActionOutput, GenericActionOutput, OutputFie
 from soar_sdk.params import Param, Params
 
 
+class EmptyOutput(ActionOutput):
+    """Empty output for test_connectivity."""
+
+    pass
+
+
 class ParsedResponseBody(ActionOutput):
+    """A flexible model for any JSON response."""
 
     class Config:
         extra = Extra.allow
 
 
 class BaseHttpOutput(GenericActionOutput):
+    """Base class for all standard action outputs."""
+
     location: str = OutputField(cef_types=["url"], example_values=["http://192.168.1.26/rest/assets"])
     method: str = OutputField(example_values=["POST"])
     parsed_response_body: ParsedResponseBody = OutputField(example_values=['{"failed": true, "message": "Requested item not found"}'])
@@ -21,6 +30,8 @@ class BaseHttpOutput(GenericActionOutput):
 
 
 class BaseHttpParams(Params):
+    """Base class for all standard action parameters."""
+
     location: str = Param(
         description="Location (e.g. path/to/endpoint)",
         primary=True,

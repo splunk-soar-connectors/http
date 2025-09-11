@@ -24,7 +24,7 @@ class PutFileParams(Params):
         cef_types=["file path"],
     )
     file_name: str = Param(description="Name of the file to be put on endpoint")
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
+    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)", default=False)
 
 
 class PutFileOutput(ActionOutput):

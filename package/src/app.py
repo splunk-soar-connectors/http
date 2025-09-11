@@ -22,8 +22,6 @@ app = App(
 
 
 class EmptyOutput(ActionOutput):
-    """An empty output class for actions that do not return data, like test_connectivity."""
-
     pass
 
 

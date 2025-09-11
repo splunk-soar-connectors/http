@@ -23,7 +23,7 @@ class GetFileParams(Params):
         primary=True,
         cef_types=["file path"],
     )
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
+    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)", default=False)
 
 
 class GetFileOutput(ActionOutput):

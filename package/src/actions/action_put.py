@@ -15,7 +15,7 @@ class PutDataOutput(BaseHttpOutput):
 
 
 class PutDataParams(BaseHttpParams):
-    body: str = Param(description="PATCH body (query string, JSON, etc.)")
+    body: str = Param(description="PATCH body (query string, JSON, etc.)", required=False)
 
 
 def put_data(params: PutDataParams, soar: SOARClient, asset: Asset) -> PutDataOutput:

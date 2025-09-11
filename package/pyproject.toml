@@ -8,6 +8,8 @@ authors = [
 ]
 dependencies = [
     "splunk-soar-sdk>=1.0.0b55",
+    "validators",
+    "xmltodict",
 ]
 
 [dependency-groups]

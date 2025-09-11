@@ -15,7 +15,7 @@ class DeleteDataOutput(BaseHttpOutput):
 
 
 class DeleteDataParams(BaseHttpParams):
-    body: str = Param(description="DELETE body (query string, JSON, etc.)")
+    body: str = Param(description="DELETE body (query string, JSON, etc.)", required=False)
 
 
 def delete_data(params: DeleteDataParams, soar: SOARClient, asset: Asset) -> DeleteDataOutput:

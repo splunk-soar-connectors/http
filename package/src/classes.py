@@ -26,5 +26,5 @@ class BaseHttpParams(Params):
         primary=True,
         cef_types=["endpoint"],
     )
-    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)")
+    verify_certificate: bool = Param(description="Verify certificates (if using HTTPS)", default=False, required=False)
     headers: str = Param(description="Additional headers (JSON object with headers)", required=False)

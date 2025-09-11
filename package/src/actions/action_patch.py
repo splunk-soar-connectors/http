@@ -11,7 +11,7 @@ action_type = "generic"
 
 
 class PatchDataParams(BaseHttpParams):
-    body: str = Param(description="PATCH body (query string, JSON, etc.)")
+    body: str = Param(description="PATCH body (query string, JSON, etc.)", required=False)
 
 
 class PatchDataOutput(BaseHttpOutput):

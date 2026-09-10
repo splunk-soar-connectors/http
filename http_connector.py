@@ -196,6 +196,33 @@ class HttpConnector(BaseConnector):
 
         return f"Error Code: {error_code}. Error Message: {error_msg}"
 
+    def _get_response_error_message(self, exception, method, phase, response=None):
+        """Build an actionable message for failures while receiving a response."""
+        response_details = []
+        if response is not None:
+            status_code = getattr(response, "status_code", None)
+            if status_code is not None:
+                response_details.append(f"HTTP status: {status_code}.")
+            content_length = response.headers.get("Content-Length")
+            if content_length:
+                response_details.append(f"Content-Length: {content_length}.")
+
+        details = " ".join(response_details)
+        if details:
+            details = f" {details}"
+
+        hint = " The remote server or a network intermediary may have closed the connection before the response completed."
+        if response is None:
+            hint = " No response headers were received; verify the endpoint and network path."
+        elif isinstance(exception, requests.exceptions.Timeout):
+            hint = " The server or network path did not provide data within the configured timeout."
+
+        return (
+            f"HTTP {method.upper()} request failed while {phase}.{details}"
+            f"{hint} Exception type: {type(exception).__name__}. "
+            f"Details: {self._get_error_message_from_exception(exception)}"
+        )
+
     def _validate_integers(self, action_result, parameter, key, allow_zero=False):
         """This method is to check if the provided input parameter value
         is a non-zero positive integer and returns the integer value of the parameter itself.
@@ -513,77 +540,98 @@ class HttpConnector(BaseConnector):
                 stream=True,
             )
 
-        except Exception as e:
-            error_message = self._get_error_message_from_exception(e)
+        except requests.exceptions.RequestException as e:
             return action_result.set_status(
                 phantom.APP_ERROR,
-                f"Error Connecting to server. Details: {error_message}",
+                self._get_response_error_message(e, method, "connecting to the server"),
+            ), None
+        except Exception as e:
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                self._get_response_error_message(e, method, "connecting to the server"),
             ), None
 
-        if phantom.is_fail(self._buffer_xml_response(r, action_result)):
-            return action_result.get_status(), r
+        keep_response_open = False
+        try:
+            if phantom.is_fail(self._buffer_xml_response(r, action_result)):
+                return action_result.get_status(), None
 
-        # fetch new token if old one has expired
-        if access_token and r.status_code == 401 and self.access_token_retry:
-            self.save_progress(f"Got error: {r.status_code}")
-            self._access_token = None
-            self._state.pop("access_token")
-            self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
-            return self._make_http_call(
-                action_result,
-                endpoint=endpoint,
-                method=method,
-                headers=headers,
-                params=params,
-                verify=verify,
-                data=data,
-                files=files,
-                use_default_endpoint=use_default_endpoint,
-            )
+            # fetch new token if old one has expired
+            if access_token and r.status_code == 401 and self.access_token_retry:
+                self.save_progress(f"Got error: {r.status_code}")
+                self._access_token = None
+                self._state.pop("access_token")
+                self.access_token_retry = False  # make it to false to avoid getting access token after one time (prevents recursive loop)
+                r.close()
+                return self._make_http_call(
+                    action_result,
+                    endpoint=endpoint,
+                    method=method,
+                    headers=headers,
+                    params=params,
+                    verify=verify,
+                    data=data,
+                    files=files,
+                    use_default_endpoint=use_default_endpoint,
+                )
 
-        # Return success for get headers action as it returns empty response body
-        if self.get_action_identifier() == "http_head" and r.status_code == 200:
-            resp_data = {"method": method.upper(), "location": url}
+            # Return success for get headers action as it returns empty response body
+            if self.get_action_identifier() == "http_head" and r.status_code == 200:
+                resp_data = {"method": method.upper(), "location": url}
+                try:
+                    resp_data["response_headers"] = self._safe_response_headers(r.headers)
+                except Exception:
+                    pass
+                action_result.add_data(resp_data)
+                action_result.update_summary({"status_code": r.status_code, "reason": r.reason})
+                self.access_token_retry = True
+                return action_result.set_status(phantom.APP_SUCCESS), None
+
+            ret_val, parsed_body = self._process_response(r, action_result)
+
+            if self.get_action_identifier() == "get_file" or self.get_action_identifier() == "put_file":
+                keep_response_open = not phantom.is_fail(ret_val)
+                return ret_val, r if keep_response_open else None
+
+            content_type = r.headers.get("Content-Type", "")
+            if "json" not in content_type and "javascript" not in content_type:
+                response_body = r.text
+            else:
+                response_body = parsed_body
+
+            resp_data = {
+                "method": method.upper(),
+                "location": url,
+                "parsed_response_body": parsed_body,
+                "response_body": response_body,
+            }
             try:
                 resp_data["response_headers"] = self._safe_response_headers(r.headers)
             except Exception:
                 pass
             action_result.add_data(resp_data)
             action_result.update_summary({"status_code": r.status_code, "reason": r.reason})
-            self.access_token_retry = True
+
+            if self.get_action_identifier() == "test_connectivity":
+                self.save_progress(f"Got status code {r.status_code}")
+
+            if phantom.is_fail(ret_val):
+                return ret_val, None
+
             return action_result.set_status(phantom.APP_SUCCESS), None
-
-        ret_val, parsed_body = self._process_response(r, action_result)
-
-        if self.get_action_identifier() == "get_file" or self.get_action_identifier() == "put_file":
-            return ret_val, r
-
-        content_type = r.headers.get("Content-Type", "")
-        if "json" not in content_type and "javascript" not in content_type:
-            response_body = r.text
-        else:
-            response_body = parsed_body
-
-        resp_data = {
-            "method": method.upper(),
-            "location": url,
-            "parsed_response_body": parsed_body,
-            "response_body": response_body,
-        }
-        try:
-            resp_data["response_headers"] = self._safe_response_headers(r.headers)
-        except Exception:
-            pass
-        action_result.add_data(resp_data)
-        action_result.update_summary({"status_code": r.status_code, "reason": r.reason})
-
-        if self.get_action_identifier() == "test_connectivity":
-            self.save_progress(f"Got status code {r.status_code}")
-
-        if phantom.is_fail(ret_val):
-            return ret_val, None
-
-        return action_result.set_status(phantom.APP_SUCCESS), None
+        except requests.exceptions.RequestException as e:
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                self._get_response_error_message(e, method, "reading the response body", r),
+            ), None
+        except Exception as e:
+            return action_result.set_status(
+                phantom.APP_ERROR,
+                self._get_response_error_message(e, method, "processing the response", r),
+            ), None
+        finally:
+            if not keep_response_open:
+                r.close()
 
     def _get_headers(self, action_result, headers):
         # Not to be confused with the action "get headers"
@@ -747,13 +795,15 @@ class HttpConnector(BaseConnector):
         if phantom.is_fail(ret_val):
             return action_result.get_status()
 
-        if r.status_code == 200:
-            return self._save_file_to_vault(action_result, r, file_name)
-        else:
+        try:
+            if r.status_code == 200:
+                return self._save_file_to_vault(action_result, r, file_name)
             return action_result.set_status(
                 phantom.APP_ERROR,
                 HTTP_SERVER_CONNECTION_ERR_MSG.format(error=r.status_code),
             )
+        finally:
+            r.close()
 
     def _handle_put_file(self, param, method):
         action_result = ActionResult(dict(param))
@@ -847,17 +897,20 @@ class HttpConnector(BaseConnector):
         finally:
             f.close()
 
-        if phantom.is_fail(ret_val):
-            return action_result.get_status()
-        if response.status_code == 200:
-            summary = {"file_sent": destination_path}
-            action_result.update_summary(summary)
-            return action_result.set_status(phantom.APP_SUCCESS)
-        else:
+        try:
+            if phantom.is_fail(ret_val):
+                return action_result.get_status()
+            if response.status_code == 200:
+                summary = {"file_sent": destination_path}
+                action_result.update_summary(summary)
+                return action_result.set_status(phantom.APP_SUCCESS)
             return action_result.set_status(
                 phantom.APP_ERROR,
                 HTTP_SERVER_CONNECTION_ERR_MSG.format(error=response.status_code),
             )
+        finally:
+            if response is not None:
+                response.close()
 
     def _save_file_to_vault(self, action_result, response, file_name):
         # Create a tmp directory on the vault partition

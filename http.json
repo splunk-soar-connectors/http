@@ -11,7 +11,7 @@
     ],
     "type": "information",
     "main_module": "http_connector.py",
-    "app_version": "4.0.1",
+    "app_version": "4.1.0",
     "utctime_updated": "2026-08-04T00:10:05.406693Z",
     "product_vendor": "Generic",
     "product_name": "HTTP",

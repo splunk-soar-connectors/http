@@ -541,19 +541,30 @@ class HttpConnector(BaseConnector):
             )
 
         except requests.exceptions.RequestException as e:
+            self.debug_print(f"HTTP {method.upper()} request failed: phase=connecting, exception={type(e).__name__}")
             return action_result.set_status(
                 phantom.APP_ERROR,
                 self._get_response_error_message(e, method, "connecting to the server"),
             ), None
         except Exception as e:
+            self.debug_print(f"HTTP {method.upper()} request failed: phase=connecting, exception={type(e).__name__}")
             return action_result.set_status(
                 phantom.APP_ERROR,
                 self._get_response_error_message(e, method, "connecting to the server"),
             ), None
 
+        self.debug_print(
+            f"HTTP {method.upper()} response headers received: "
+            f"status={r.status_code}, content_type={r.headers.get('Content-Type')}, "
+            f"content_length={r.headers.get('Content-Length')}, "
+            f"transfer_encoding={r.headers.get('Transfer-Encoding')}, "
+            f"content_encoding={r.headers.get('Content-Encoding')}"
+        )
         keep_response_open = False
         try:
+            self.debug_print(f"HTTP {method.upper()} response processing started: phase=xml_buffering")
             if phantom.is_fail(self._buffer_xml_response(r, action_result)):
+                self.debug_print(f"HTTP {method.upper()} response processing failed: phase=xml_buffering")
                 return action_result.get_status(), None
 
             # fetch new token if old one has expired
@@ -587,7 +598,9 @@ class HttpConnector(BaseConnector):
                 self.access_token_retry = True
                 return action_result.set_status(phantom.APP_SUCCESS), None
 
+            self.debug_print(f"HTTP {method.upper()} response processing started: phase=response_processing")
             ret_val, parsed_body = self._process_response(r, action_result)
+            self.debug_print(f"HTTP {method.upper()} response processing completed")
 
             if self.get_action_identifier() == "get_file" or self.get_action_identifier() == "put_file":
                 keep_response_open = not phantom.is_fail(ret_val)
@@ -620,11 +633,23 @@ class HttpConnector(BaseConnector):
 
             return action_result.set_status(phantom.APP_SUCCESS), None
         except requests.exceptions.RequestException as e:
+            self.debug_print(
+                f"HTTP {method.upper()} response processing failed: "
+                f"phase=reading_response_body, exception={type(e).__name__}, "
+                f"status={getattr(r, 'status_code', None)}, "
+                f"content_length={r.headers.get('Content-Length')}"
+            )
             return action_result.set_status(
                 phantom.APP_ERROR,
                 self._get_response_error_message(e, method, "reading the response body", r),
             ), None
         except Exception as e:
+            self.debug_print(
+                f"HTTP {method.upper()} response processing failed: "
+                f"phase=response_processing, exception={type(e).__name__}, "
+                f"status={getattr(r, 'status_code', None)}, "
+                f"content_length={r.headers.get('Content-Length')}"
+            )
             return action_result.set_status(
                 phantom.APP_ERROR,
                 self._get_response_error_message(e, method, "processing the response", r),
